@@ -1,48 +1,88 @@
 <template>
   <div class="chat-page">
-    <!-- Session List -->
+    <!-- 会话列表 -->
     <div class="session-list">
-      <h3 style="padding:16px;margin:0;border-bottom:1px solid #ebeef5">消息</h3>
-      <div v-for="s in sessions" :key="s" class="session-item" :class="{ active: activeSession === s }"
-        @click="openSession(s)">
-        <el-avatar :size="40">U</el-avatar>
-        <div class="session-info">
-          <div class="session-name">会话 {{ s.slice(-8) }}</div>
-          <div class="session-preview">点击查看消息</div>
-        </div>
+      <div class="session-list-header">
+        <h3>💬 消息</h3>
       </div>
-      <el-empty v-if="sessions.length === 0" description="暂无会话" :image-size="60" />
+      <div class="session-items">
+        <div v-for="s in sessions" :key="s" class="session-item" :class="{ active: activeSession === s }"
+          @click="openSession(s)">
+          <el-avatar :size="44" class="session-avatar">
+            <el-icon :size="20"><User /></el-icon>
+          </el-avatar>
+          <div class="session-info">
+            <div class="session-name">会话 {{ s.slice(-8) }}</div>
+            <div class="session-preview">点击查看消息</div>
+          </div>
+        </div>
+        <el-empty v-if="sessions.length === 0" description="暂无会话" :image-size="60" />
+      </div>
     </div>
 
-    <!-- Chat Area -->
+    <!-- 聊天区 -->
     <div class="chat-area" v-if="activeSession">
-      <div class="chat-header">{{ activeSession }}</div>
+      <div class="chat-header">
+        <el-avatar :size="36" class="chat-avatar">
+          <el-icon :size="16"><User /></el-icon>
+        </el-avatar>
+        <div class="chat-header-info">
+          <div class="chat-header-name">会话 {{ activeSession.slice(-8) }}</div>
+          <div class="chat-header-status">在线</div>
+        </div>
+      </div>
+
       <div class="chat-messages" ref="msgBox">
+        <div v-if="messages.length === 0" class="chat-empty-hint">
+          <el-icon :size="48" color="#dcdfe6"><ChatDotRound /></el-icon>
+          <p>暂无消息，发送第一条吧 👋</p>
+        </div>
         <div v-for="m in messages" :key="m.id"
-          :class="['msg-bubble', m.senderId === store.userInfo?.id ? 'msg-mine' : 'msg-other']">
-          <div class="msg-content">{{ m.content }}</div>
+          :class="['msg-row', m.senderId === store.userInfo?.id ? 'msg-row-mine' : 'msg-row-other']">
+          <el-avatar v-if="m.senderId !== store.userInfo?.id" :size="32" class="msg-avatar">
+            <el-icon :size="14"><User /></el-icon>
+          </el-avatar>
+          <div :class="['msg-bubble', m.senderId === store.userInfo?.id ? 'msg-mine' : 'msg-other']">
+            <div class="msg-content">{{ m.content }}</div>
+          </div>
           <div class="msg-time">{{ m.createdAt?.slice(11, 16) }}</div>
         </div>
-        <div v-if="messages.length === 0" style="text-align:center;color:#c0c4cc;margin-top:80px">暂无消息，发送第一条吧</div>
       </div>
-      <div class="chat-input">
-        <el-input v-model="inputText" placeholder="输入消息..." @keyup.enter="sendMessage" size="large">
-          <template #append>
-            <el-button :icon="Promotion" @click="sendMessage" :disabled="!inputText.trim()">发送</el-button>
-          </template>
-        </el-input>
+
+      <div class="chat-input-area">
+        <div class="chat-input-row">
+          <el-input
+            v-model="inputText"
+            placeholder="输入消息..."
+            @keyup.enter="sendMessage"
+            size="large"
+            class="chat-input"
+            :prefix-icon="ChatDotRound"
+          >
+            <template #append>
+              <el-button :icon="Promotion" @click="sendMessage" :disabled="!inputText.trim()" type="primary">
+                发送
+              </el-button>
+            </template>
+          </el-input>
+        </div>
       </div>
     </div>
+
+    <!-- 占位 -->
     <div class="chat-placeholder" v-else>
-      <el-empty description="选择一个会话开始聊天" :image-size="80" />
+      <div class="placeholder-content">
+        <el-icon :size="72" color="#dcdfe6"><ChatDotRound /></el-icon>
+        <p>选择一个会话开始聊天</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Promotion } from '@element-plus/icons-vue'
+import { Promotion, ChatDotRound, User } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { getSessions, getHistory } from '../api/chat'
 
@@ -108,21 +148,71 @@ onUnmounted(() => { if (ws) ws.close() })
 </script>
 
 <style scoped>
-.chat-page { display: flex; height: calc(100vh - 140px); background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.session-list { width: 280px; border-right: 1px solid #ebeef5; overflow-y: auto; flex-shrink: 0; }
-.session-item { display: flex; gap: 12px; padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #f5f7fa; transition: background 0.2s; }
-.session-item:hover, .session-item.active { background: #ecf5ff; }
+.chat-page {
+  display: flex;
+  height: calc(100vh - 130px);
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+}
+
+/* ===== 会话列表 ===== */
+.session-list { width: 300px; border-right: 1px solid #f0f2f5; display: flex; flex-direction: column; flex-shrink: 0; }
+.session-list-header { padding: 18px 20px; border-bottom: 1px solid #f0f2f5; }
+.session-list-header h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1a1a2e; }
+.session-items { flex: 1; overflow-y: auto; }
+
+.session-item {
+  display: flex; gap: 12px; padding: 14px 20px; cursor: pointer;
+  transition: all 0.2s; border-bottom: 1px solid #fafbfc;
+}
+.session-item:hover { background: #f5f8ff; }
+.session-item.active { background: #ecf5ff; border-left: 3px solid #409eff; }
+.session-avatar { background: linear-gradient(135deg, #e8eaed, #dcdfe6); color: #909399; }
+.session-item.active .session-avatar { background: linear-gradient(135deg, #409eff, #5cadff); color: #fff; }
 .session-info { flex: 1; min-width: 0; }
-.session-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-name { font-size: 14px; font-weight: 600; color: #303133; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session-preview { font-size: 12px; color: #c0c4cc; margin-top: 4px; }
+
+/* ===== 聊天区域头 ===== */
 .chat-area { flex: 1; display: flex; flex-direction: column; }
-.chat-header { padding: 14px 20px; border-bottom: 1px solid #ebeef5; font-weight: 600; font-size: 15px; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #fafafa; }
-.msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 12px; position: relative; }
-.msg-mine { align-self: flex-end; background: #409eff; color: #fff; border-bottom-right-radius: 4px; }
-.msg-other { align-self: flex-start; background: #fff; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.msg-content { font-size: 14px; line-height: 1.5; word-break: break-word; }
-.msg-time { font-size: 11px; margin-top: 4px; opacity: 0.7; }
-.chat-input { padding: 14px; border-top: 1px solid #ebeef5; }
-.chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; }
+.chat-header {
+  padding: 14px 20px; border-bottom: 1px solid #f0f2f5;
+  display: flex; align-items: center; gap: 12px;
+}
+.chat-avatar { background: linear-gradient(135deg, #409eff, #5cadff); color: #fff; }
+.chat-header-name { font-weight: 600; font-size: 15px; color: #1a1a2e; }
+.chat-header-status { font-size: 12px; color: #67c23a; }
+
+/* ===== 消息区 ===== */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  background: linear-gradient(180deg, #fafbfc, #f5f7fa);
+}
+
+.chat-empty-hint { text-align: center; margin-top: 80px; }
+.chat-empty-hint p { color: #c0c4cc; font-size: 14px; margin-top: 12px; }
+
+.msg-row { display: flex; align-items: flex-end; gap: 8px; max-width: 78%; }
+.msg-row-mine { align-self: flex-end; flex-direction: row-reverse; }
+.msg-row-other { align-self: flex-start; }
+
+.msg-avatar { flex-shrink: 0; background: #e8eaed; color: #909399; }
+
+.msg-bubble { padding: 10px 16px; border-radius: 18px; position: relative; }
+.msg-mine { background: linear-gradient(135deg, #409eff, #5cadff); color: #fff; border-bottom-right-radius: 6px; }
+.msg-other { background: #fff; border-bottom-left-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.msg-content { font-size: 14px; line-height: 1.6; word-break: break-word; }
+.msg-time { font-size: 10px; color: #c0c4cc; margin: 0 4px 4px; flex-shrink: 0; }
+
+/* ===== 输入区 ===== */
+.chat-input-area { padding: 14px 20px; border-top: 1px solid #f0f2f5; background: #fff; }
+.chat-input-row { display: flex; gap: 10px; }
+
+/* ===== 占位 ===== */
+.chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; background: #fafbfc; }
+.placeholder-content { text-align: center; }
+.placeholder-content p { color: #c0c4cc; font-size: 15px; margin-top: 16px; }
 </style>

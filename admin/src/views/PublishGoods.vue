@@ -1,51 +1,59 @@
 <template>
   <div class="publish-page">
-    <h2 class="page-title">{{ isEdit ? '编辑商品' : '发布商品' }}</h2>
-    <el-card>
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="80px" label-position="top">
-        <el-row :gutter="20">
+    <div class="page-top">
+      <h2 class="page-title">{{ isEdit ? '✏️ 编辑商品' : '📦 发布商品' }}</h2>
+      <p class="page-desc">{{ isEdit ? '修改商品信息并保存' : '填写商品信息，让更多人看到你的闲置好物' }}</p>
+    </div>
+
+    <el-card class="form-card">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top" class="publish-form">
+        <el-row :gutter="24">
           <el-col :span="16">
             <el-form-item label="商品标题" prop="title">
-              <el-input v-model="form.title" placeholder="请输入商品标题" maxlength="64" show-word-limit size="large" />
+              <el-input v-model="form.title" placeholder="例如：95新高等数学第七版，只用了一学期" maxlength="64" show-word-limit size="large" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="分类" prop="category">
+            <el-form-item label="商品分类" prop="category">
               <el-select v-model="form.category" size="large" style="width:100%">
                 <el-option label="📚 教材" value="book" />
                 <el-option label="💻 电子产品" value="electronic" />
                 <el-option label="👔 服饰" value="clothing" />
                 <el-option label="⚽ 运动" value="sports" />
-                <el-option label="🏠 生活" value="daily" />
+                <el-option label="🧴 生活用品" value="daily" />
                 <el-option label="📦 其他" value="other" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" :rows="4" placeholder="描述商品成色、使用情况等" />
+        <el-form-item label="商品描述">
+          <el-input v-model="form.description" type="textarea" :rows="4" placeholder="描述商品的成色、使用时长、购买渠道等详细信息，让买家更了解你的商品" maxlength="500" show-word-limit />
         </el-form-item>
 
-        <el-row :gutter="20">
+        <el-row :gutter="24">
           <el-col :span="8">
-            <el-form-item label="售价 (¥)" prop="price">
-              <el-input-number v-model="form.price" :min="0" :precision="2" :controls="false" size="large" style="width:100%" placeholder="0.00" />
+            <el-form-item label="售价" prop="price">
+              <el-input-number v-model="form.price" :min="0.01" :precision="2" :controls="false" size="large" style="width:100%" placeholder="0.00">
+                <template #prefix>¥</template>
+              </el-input-number>
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="原价 (¥)">
-              <el-input-number v-model="form.originalPrice" :min="0" :precision="2" :controls="false" size="large" style="width:100%" placeholder="选填" />
+            <el-form-item label="原价">
+              <el-input-number v-model="form.originalPrice" :min="0" :precision="2" :controls="false" size="large" style="width:100%" placeholder="选填">
+                <template #prefix>¥</template>
+              </el-input-number>
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="成色">
+            <el-form-item label="商品成色" prop="conditionLevel">
               <el-select v-model="form.conditionLevel" size="large" style="width:100%">
-                <el-option label="全新" :value="1" />
-                <el-option label="几乎全新" :value="2" />
-                <el-option label="良好" :value="3" />
-                <el-option label="一般" :value="4" />
-                <el-option label="较差" :value="5" />
+                <el-option label="🟢 全新" :value="1" />
+                <el-option label="🔵 几乎全新" :value="2" />
+                <el-option label="🟡 良好" :value="3" />
+                <el-option label="🟠 一般" :value="4" />
+                <el-option label="🔴 较差" :value="5" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -53,23 +61,43 @@
 
         <el-form-item label="商品图片">
           <div class="upload-area">
-            <el-upload :auto-upload="false" :show-file-list="false" :on-change="handleImageAdd"
-              accept="image/*" list-type="picture-card">
-              <el-icon :size="28"><Plus /></el-icon>
-            </el-upload>
-            <div v-for="(img, i) in previewImages" :key="i" class="preview-item">
-              <img :src="img" />
-              <span class="remove-btn" @click="removeImage(i)"><el-icon><Close /></el-icon></span>
+            <div class="upload-grid">
+              <div
+                v-for="(img, i) in previewImages"
+                :key="i"
+                class="upload-preview-item"
+              >
+                <img :src="img" />
+                <div class="upload-overlay" @click="removeImage(i)">
+                  <el-icon :size="18"><Close /></el-icon>
+                </div>
+              </div>
+              <el-upload
+                v-if="previewImages.length < 9"
+                :auto-upload="false"
+                :show-file-list="false"
+                :on-change="handleImageAdd"
+                accept="image/*"
+                class="upload-trigger"
+              >
+                <div class="upload-add-box">
+                  <el-icon :size="32"><Plus /></el-icon>
+                  <span v-if="previewImages.length === 0">上传图片</span>
+                </div>
+              </el-upload>
             </div>
-            <p class="upload-hint" v-if="previewImages.length === 0">点击上传商品图片（上传到服务器）</p>
+            <p class="upload-tip" v-if="previewImages.length === 0">
+              💡 支持 JPG/PNG 格式，最多上传9张。第一张将作为封面。
+            </p>
           </div>
         </el-form-item>
 
+        <el-divider />
         <el-form-item>
-          <el-button type="primary" size="large" @click="handleSubmit" :loading="submitting" :icon="Check">
-            {{ isEdit ? '保存修改' : '立即发布' }}
+          <el-button type="primary" size="large" @click="handleSubmit" :loading="submitting" :icon="Check" class="submit-btn">
+            {{ isEdit ? '💾 保存修改' : '🚀 立即发布' }}
           </el-button>
-          <el-button size="large" @click="$router.back()">取消</el-button>
+          <el-button size="large" @click="$router.back()" round>取消</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -99,7 +127,8 @@ const form = reactive({
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  price: [{ required: true, message: '请输入价格', trigger: 'blur' }]
+  price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
+  conditionLevel: [{ required: true, message: '请选择成色', trigger: 'change' }],
 }
 
 onMounted(async () => {
@@ -143,11 +172,45 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.publish-page { max-width: 800px; margin: 0 auto; }
-.page-title { margin-bottom: 20px; font-size: 22px; }
-.upload-area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.preview-item { width: 100px; height: 100px; border-radius: 8px; overflow: hidden; position: relative; }
-.preview-item img { width: 100%; height: 100%; object-fit: cover; }
-.remove-btn { position: absolute; top: -4px; right: -4px; background: #f56c6c; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
-.upload-hint { font-size: 13px; color: #c0c4cc; margin-left: 8px; }
+.publish-page { max-width: 800px; margin: 0 auto; padding-bottom: 40px; }
+
+.page-top { margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 6px; }
+.page-desc { font-size: 14px; color: #909399; margin: 0; }
+
+.form-card { border-radius: 14px; overflow: hidden; }
+.publish-form { padding: 8px 0; }
+
+/* ===== 上传区 ===== */
+.upload-area { width: 100%; }
+.upload-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+
+.upload-preview-item {
+  width: 108px; height: 108px; border-radius: 10px; overflow: hidden;
+  position: relative; cursor: pointer;
+}
+.upload-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.upload-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.25s; color: #fff;
+}
+.upload-preview-item:hover .upload-overlay { opacity: 1; }
+
+.upload-add-box {
+  width: 108px; height: 108px; border: 2px dashed #dcdfe6;
+  border-radius: 10px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+  color: #c0c4cc; transition: all 0.25s; font-size: 13px;
+  cursor: pointer;
+}
+.upload-add-box:hover { border-color: #409eff; color: #409eff; background: #f0f7ff; }
+
+.upload-tip { font-size: 13px; color: #c0c4cc; margin: 10px 0 0; }
+
+/* ===== 提交按钮 ===== */
+.submit-btn {
+  padding: 14px 36px; font-size: 16px; font-weight: 600;
+  border-radius: 12px; letter-spacing: 1px;
+}
 </style>
