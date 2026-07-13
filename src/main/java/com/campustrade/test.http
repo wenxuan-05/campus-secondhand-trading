@@ -1,0 +1,37 @@
+### 注册
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "phone": "13800138002",
+  "password": "123456",
+  "nickname": "测试用户"
+}
+
+### 登录
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "phone": "13800138002",
+  "password": "123456"
+}
+
+### 学号认证（需要登录，把登录返回的 accessToken 填到 Authorization）
+POST http://localhost:8080/api/v1/user/verify
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwidXNlck5vIjoiVTIwMjYwNzEzMTYyODUxMDAwMSIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODM5MzE3OTAsImV4cCI6MTc4NDAxODE5MH0.YQXr2MiM2QcJS7OqpB41YARYj54RMIPR_Ci2-qKIs9QkbZesbxMkAn_wci5qhlAIFjwmtpav-HVfL1_9216r7g
+
+{
+  "studentId": "2021301234",
+  "realName": "张三",
+  "idCardSuffix": "5678",
+  "campus": "北区",
+  "dormitory": "北区3号楼",
+  "roomNumber": "302",
+  "gender": 1
+}
+
+### 获取个人信息
+GET http://localhost:8080/api/v1/user/profile
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwidXNlck5vIjoiVTIwMjYwNzEzMTYyODUxMDAwMSIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3ODM5MzE3OTAsImV4cCI6MTc4NDAxODE5MH0.YQXr2MiM2QcJS7OqpB41YARYj54RMIPR_Ci2-qKIs9QkbZesbxMkAn_wci5qhlAIFjwmtpav-HVfL1_9216r7g
