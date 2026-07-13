@@ -1,0 +1,42 @@
+# ====================
+# Java / Spring Boot
+# ====================
+backend/target/
+backend/*.jar
+backend/*.log
+backend/logs/
+*.class
+*.war
+
+# ====================
+# Node / Vue
+# ====================
+admin/node_modules/
+admin/dist/
+
+# ====================
+# Sensitive Config
+# ====================
+backend/src/main/resources/application.yml
+
+# ====================
+# IDE
+# ====================
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# ====================
+# OS
+# ====================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ====================
+# Maven
+# ====================
+.mvn/wrapper/maven-wrapper.jar

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.secondhand.mapper.GoodsMapper">
+
+    <select id="selectGoodsPage" resultType="com.campus.secondhand.entity.Goods">
+        SELECT * FROM goods
+        WHERE status = 1
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (title LIKE '%' + #{query.keyword} + '%' OR description LIKE '%' + #{query.keyword} + '%')
+        </if>
+        <if test="query.category != null and query.category != ''">
+            AND category = #{query.category}
+        </if>
+        <if test="query.conditionLevel != null">
+            AND condition_level = #{query.conditionLevel}
+        </if>
+        <if test="query.priceMin != null">
+            AND price &gt;= #{query.priceMin}
+        </if>
+        <if test="query.priceMax != null">
+            AND price &lt;= #{query.priceMax}
+        </if>
+        <choose>
+            <when test="query.sortBy == 'price_asc'">ORDER BY price ASC</when>
+            <when test="query.sortBy == 'price_desc'">ORDER BY price DESC</when>
+            <when test="query.sortBy == 'view_desc'">ORDER BY view_count DESC</when>
+            <otherwise>ORDER BY created_at DESC</otherwise>
+        </choose>
+    </select>
+
+</mapper>
