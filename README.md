@@ -87,11 +87,40 @@ cd campus-secondhand-trading
 cp backend/src/main/resources/application-template.yml backend/src/main/resources/application.yml
 ```
 
-### 3. 初始化数据库
+### 3. 搭建 MinIO（文件存储）
+
+> ⚠️ `minio/` 目录已加入 `.gitignore`，不会上传到 GitHub。每位成员需自行下载。
+
+**Windows：**
+```bash
+# 在项目根目录创建 minio 文件夹，放入 minio.exe 和 mc.exe
+mkdir minio
+# 从 https://dl.min.io/server/minio/release/windows-amd64/minio.exe 下载 minio.exe
+# 从 https://dl.min.io/client/mc/release/windows-amd64/mc.exe    下载 mc.exe
+# 把两个 exe 放到 minio/ 目录下
+
+# 启动 MinIO（在项目根目录执行）
+minio\minio.exe server minio\data --console-address :9001
+```
+
+**macOS / Linux：**
+```bash
+mkdir minio
+# 下载 minio 和 mc 二进制文件放入 minio/ 目录
+# 启动
+./minio/minio server ./minio/data --console-address :9001
+```
+
+启动后：
+- API 地址：`http://localhost:9000`
+- 管理控制台：`http://localhost:9001`
+- 默认账号密码：`minioadmin` / `minioadmin`
+
+### 4. 初始化数据库
 
 在 SSMS 中打开并执行 `backend/src/main/resources/init.sql`，会自动建库、建表、插入种子账号。
 
-### 4. 启动后端
+### 5. 启动后端
 
 ```bash
 cd backend
@@ -100,7 +129,7 @@ mvn spring-boot:run
 
 启动后访问 http://localhost:8080
 
-### 5. 启动前端
+### 6. 启动前端
 
 ```bash
 cd admin
@@ -110,7 +139,7 @@ npm run dev
 
 启动后访问 http://localhost:3000
 
-### 6. 登录
+### 7. 登录
 
 | 账号 | 密码 | 说明 |
 |---|---|---|
@@ -215,4 +244,4 @@ chore: 构建/工具
 - 新成员加入时需复制 `application-template.yml` → `application.yml` 并填入自己的本地配置
 - MinIO 未启动时图片上传会失败，其他功能不受影响
 - 管理后台目前无角色权限控制，任何注册用户均可访问 `/admin` 路由
-测试人员：陈宇涵11111111111111
+测试人员：陈宇涵
