@@ -3,7 +3,7 @@ package com.campus.secondhand.common;
 import lombok.Data;
 
 @Data
-public class Result<T> {
+public class Result<T> {//rfwrrara
     private int code;
     private String message;
     private T data;
