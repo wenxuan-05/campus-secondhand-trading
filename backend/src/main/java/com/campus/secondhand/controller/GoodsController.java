@@ -30,7 +30,18 @@ public class GoodsController {
 
     @PutMapping("/{id}/off")
     public Result<Void> offShelf(@PathVariable Long id) {
-        goodsService.offShelf(id, UserContext.getUserId());
+        if (UserContext.isAdmin()) {
+            goodsService.adminOffShelf(id);
+        } else {
+            goodsService.offShelf(id, UserContext.getUserId());
+        }
+        return Result.ok();
+    }
+
+    @PutMapping("/{id}/on")
+    public Result<Void> onShelf(@PathVariable Long id) {
+        // Only owner can relist their own goods
+        goodsService.onShelf(id, UserContext.getUserId());
         return Result.ok();
     }
 

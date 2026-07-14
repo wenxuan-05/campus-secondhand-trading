@@ -16,6 +16,7 @@ public class User {
     private String password;
     private String phone;
     private Integer creditScore;
+    private String role;          // "user" or "admin"
     private Integer status;       // 0=disabled, 1=active
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

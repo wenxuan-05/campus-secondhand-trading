@@ -58,6 +58,24 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
     }
 
     @Override
+    public void adminOffShelf(Long id) {
+        Goods goods = getById(id);
+        if (goods == null) throw new BusinessException("商品不存在");
+        goods.setStatus(0);
+        updateById(goods);
+    }
+
+    @Override
+    public void onShelf(Long id, Long userId) {
+        Goods goods = getById(id);
+        if (goods == null) throw new BusinessException("商品不存在");
+        if (!goods.getUserId().equals(userId)) throw new BusinessException("无权操作");
+        if (goods.getStatus() != 0) throw new BusinessException("只有已下架的商品才能上架");
+        goods.setStatus(1);
+        updateById(goods);
+    }
+
+    @Override
     public Goods getDetail(Long id) {
         Goods goods = getById(id);
         if (goods == null) throw new BusinessException("商品不存在");

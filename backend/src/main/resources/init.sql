@@ -23,6 +23,7 @@ CREATE TABLE users (
     password    NVARCHAR(256) NOT NULL,
     phone       NVARCHAR(20)  DEFAULT N'',
     credit_score INT          NOT NULL DEFAULT 100,
+    role        NVARCHAR(16)  NOT NULL DEFAULT N'user',  -- 'user' or 'admin'
     status      TINYINT       NOT NULL DEFAULT 1,  -- 0=disabled, 1=active
     created_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
     updated_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
@@ -110,20 +111,32 @@ PRINT N'Tables created successfully.';
 GO
 
 -- ============================================
+-- Migration: Add role column for existing databases
+-- ============================================
+IF COL_LENGTH('users', 'role') IS NULL
+BEGIN
+    ALTER TABLE users ADD role NVARCHAR(16) NOT NULL DEFAULT N'user';
+    PRINT N'Added role column to users table.';
+    -- Upgrade the default admin account
+    UPDATE users SET role = N'admin' WHERE student_id = N'admin';
+END
+GO
+
+-- ============================================
 -- Seed Data: Default admin account
 -- ============================================
 IF NOT EXISTS (SELECT 1 FROM users WHERE student_id = N'admin')
 BEGIN
-    INSERT INTO users (student_id, school_name, nickname, password, phone, credit_score, status)
-    VALUES (N'admin', N'管理大学', N'系统管理员', N'e10adc3949ba59abbe56e057f20f883e', N'13800000000', 100, 1);
+    INSERT INTO users (student_id, school_name, nickname, password, phone, credit_score, role, status)
+    VALUES (N'admin', N'管理大学', N'系统管理员', N'e10adc3949ba59abbe56e057f20f883e', N'13800000000', 100, N'admin', 1);
     PRINT N'Seed admin account created.';
 END
 GO
 
 IF NOT EXISTS (SELECT 1 FROM users WHERE student_id = N'20240001')
 BEGIN
-    INSERT INTO users (student_id, school_name, nickname, password, phone, credit_score, status)
-    VALUES (N'20240001', N'测试大学', N'测试用户', N'e10adc3949ba59abbe56e057f20f883e', N'13900000000', 100, 1);
+    INSERT INTO users (student_id, school_name, nickname, password, phone, credit_score, role, status)
+    VALUES (N'20240001', N'测试大学', N'测试用户', N'e10adc3949ba59abbe56e057f20f883e', N'13900000000', 100, N'user', 1);
     PRINT N'Seed test account created.';
 END
 GO
