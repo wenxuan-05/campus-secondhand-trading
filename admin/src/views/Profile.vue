@@ -1,5 +1,5 @@
 <template>
-  <div class="profile-page">
+  <div class="profile-page" v-loading="loading" element-loading-text="正在加载个人信息...">
     <!-- 顶部个人信息卡 -->
     <div class="profile-header-card">
       <div class="profile-bg"></div>
@@ -65,31 +65,57 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Medal } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
-import request from '../utils/request'
+import { getProfile, updateProfile } from '../api/user'
 
 const store = useUserStore()
 const saving = ref(false)
+const loading = ref(true)
 const form = reactive({
-  nickname: store.userInfo?.nickname || '',
-  avatar: store.userInfo?.avatar || '',
-  schoolName: store.userInfo?.schoolName || '',
-  phone: store.userInfo?.phone || ''
+  nickname: '',
+  avatar: '',
+  schoolName: '',
+  phone: ''
 })
+
+const fetchProfile = async () => {
+  loading.value = true
+  try {
+    const res = await getProfile()
+    const user = res.data
+    // 更新 store 和 localStorage
+    store.userInfo = user
+    localStorage.setItem('admin_user', JSON.stringify(user))
+    // 更新表单数据
+    form.nickname = user.nickname || ''
+    form.avatar = user.avatar || ''
+    form.schoolName = user.schoolName || ''
+    form.phone = user.phone || ''
+  } catch {
+    // API 调用失败时，回退到 localStorage 中的数据
+    form.nickname = store.userInfo?.nickname || ''
+    form.avatar = store.userInfo?.avatar || ''
+    form.schoolName = store.userInfo?.schoolName || ''
+    form.phone = store.userInfo?.phone || ''
+  }
+  finally { loading.value = false }
+}
 
 const handleSave = async () => {
   saving.value = true
   try {
-    const res = await request.put('/user/profile', form)
+    const res = await updateProfile(form)
     store.userInfo = res.data
     localStorage.setItem('admin_user', JSON.stringify(res.data))
     ElMessage.success('保存成功')
   } catch {}
   finally { saving.value = false }
 }
+
+onMounted(fetchProfile)
 </script>
 
 <style scoped>

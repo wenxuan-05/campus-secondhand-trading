@@ -13,7 +13,7 @@
         <el-table-column label="商品信息" min-width="260">
           <template #default="{ row }">
             <div class="goods-cell">
-              <img v-if="getFirstImage(row.images)" :src="getFirstImage(row.images)" class="goods-thumb" />
+              <img v-if="getFirstImage(row.images) && !failedImages.has(row.id)" :src="getFirstImage(row.images)" class="goods-thumb" @error="failedImages.add(row.id)" />
               <div v-else class="goods-thumb placeholder">
                 <el-icon :size="24" color="#dcdfe6"><PictureFilled /></el-icon>
               </div>
@@ -54,19 +54,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, PictureFilled } from '@element-plus/icons-vue'
 import { myGoods, offShelf } from '../api/goods'
 
 const list = ref([]); const loading = ref(false)
 const page = ref(1); const pageSize = ref(10); const total = ref(0)
+const failedImages = reactive(new Set())
 const statusMap = { 0: { text: '已下架', type: 'info' }, 1: { text: '在售', type: 'success' }, 2: { text: '已售', type: 'warning' } }
 const getFirstImage = (s) => { try { return JSON.parse(s)[0] || '' } catch { return '' } }
 
 const fetch = async () => {
   loading.value = true
-  try { const r = await myGoods({ page: page.value, pageSize: pageSize.value }); list.value = r.data.records; total.value = r.data.total } catch {}
+  try {
+    const r = await myGoods({ page: page.value, pageSize: pageSize.value })
+    list.value = r.data.records
+    total.value = r.data.total
+  } catch {
+    list.value = []
+    total.value = 0
+  }
   finally { loading.value = false }
 }
 const handleOff = async (id) => { await offShelf(id); ElMessage.success('已下架'); fetch() }

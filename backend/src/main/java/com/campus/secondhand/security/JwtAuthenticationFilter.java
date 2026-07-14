@@ -52,11 +52,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean requiresAuth(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // Public endpoints
-        return !path.contains("/api/user/login")
-                && !path.contains("/api/user/register")
-                && !path.startsWith("/ws/")
-                && !path.contains("/api/file/")
-                && !"OPTIONS".equals(request.getMethod());
+        String method = request.getMethod();
+        // Public endpoints: login, register, WebSocket, file access, and browsing goods
+        if (path.contains("/api/user/login") || path.contains("/api/user/register")) return false;
+        if (path.startsWith("/ws/")) return false;
+        if (path.contains("/api/file/")) return false;
+        if ("OPTIONS".equals(method)) return false;
+        // Allow unauthenticated browsing of goods (search & detail)
+        if ("GET".equals(method) && path.matches("/api/goods/\\d+")) return false;  // GET /api/goods/{id}
+        if ("GET".equals(method) && path.equals("/api/goods/search")) return false; // GET /api/goods/search
+        return true;
     }
 }

@@ -13,8 +13,8 @@ const routes = [
     component: () => import('../views/Layout.vue'),
     redirect: '/home',
     children: [
-      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '二手市场' } },
-      { path: 'goods/:id', name: 'GoodsDetail', component: () => import('../views/GoodsDetail.vue'), meta: { title: '商品详情' } },
+      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '二手市场', noAuth: true } },
+      { path: 'goods/:id', name: 'GoodsDetail', component: () => import('../views/GoodsDetail.vue'), meta: { title: '商品详情', noAuth: true } },
       { path: 'publish', name: 'Publish', component: () => import('../views/PublishGoods.vue'), meta: { title: '发布商品' } },
       { path: 'publish/:id', name: 'EditGoods', component: () => import('../views/PublishGoods.vue'), meta: { title: '编辑商品' } },
       { path: 'my-goods', name: 'MyGoods', component: () => import('../views/MyGoods.vue'), meta: { title: '我的商品' } },

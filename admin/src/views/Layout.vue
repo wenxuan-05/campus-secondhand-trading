@@ -75,9 +75,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { getProfile } from '../api/user'
 import {
   Plus, ArrowDown, User, Goods, Document, ChatDotRound,
   ShoppingCartFull, Setting, SwitchButton
@@ -86,6 +87,19 @@ import {
 const router = useRouter()
 const store = useUserStore()
 const unreadCount = ref(0)
+
+// 页面加载时从服务器获取最新的用户信息
+onMounted(async () => {
+  if (store.token) {
+    try {
+      const res = await getProfile()
+      store.userInfo = res.data
+      localStorage.setItem('admin_user', JSON.stringify(res.data))
+    } catch {
+      // 网络错误时继续使用 localStorage 中的缓存数据
+    }
+  }
+})
 
 const handleCommand = (cmd) => {
   if (cmd === 'logout') {

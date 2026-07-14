@@ -166,7 +166,9 @@ const handleSubmit = async () => {
       ElMessage.success('发布成功')
     }
     router.push('/my-goods')
-  } catch { /* */ }
+  } catch {
+    ElMessage.error('操作失败，请检查网络或稍后再试')
+  }
   finally { submitting.value = false }
 }
 </script>

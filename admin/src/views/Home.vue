@@ -42,7 +42,7 @@
     <div class="goods-grid" v-loading="loading" element-loading-text="正在加载商品...">
       <div class="goods-card" v-for="item in goodsList" :key="item.id" @click="goDetail(item.id)">
         <div class="card-image">
-          <img v-if="getFirstImage(item.images)" :src="getFirstImage(item.images)" alt="" />
+          <img v-if="getFirstImage(item.images) && !failedImages.has(item.id)" :src="getFirstImage(item.images)" alt="" @error="failedImages.add(item.id)" />
           <div v-else class="card-image-placeholder">
             <el-icon :size="48" color="#dcdfe6"><PictureFilled /></el-icon>
           </div>
@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, PictureFilled, ShoppingCartFull, Close, View } from '@element-plus/icons-vue'
 import { search } from '../api/goods'
@@ -94,6 +94,7 @@ const sortBy = ref('created_desc')
 const page = ref(1)
 const pageSize = ref(12)
 const total = ref(0)
+const failedImages = reactive(new Set())
 
 const categories = [
   { label: '全部', value: '', icon: '🏠' },
@@ -117,7 +118,10 @@ const fetchGoods = async () => {
     const res = await search({ keyword: keyword.value, category: category.value, sortBy: sortBy.value, page: page.value, pageSize: pageSize.value })
     goodsList.value = res.data.records
     total.value = res.data.total
-  } catch { /* */ }
+  } catch {
+    goodsList.value = []
+    total.value = 0
+  }
   finally { loading.value = false }
 }
 

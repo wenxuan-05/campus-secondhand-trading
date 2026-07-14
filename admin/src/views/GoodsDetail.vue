@@ -4,7 +4,7 @@
       <!-- 图片区域 -->
       <div class="image-gallery">
         <div class="main-image-wrap">
-          <img v-if="currentImage" :src="currentImage" class="main-image" />
+          <img v-if="currentImage && !failedImages.has(currentImage)" :src="currentImage" class="main-image" @error="failedImages.add(currentImage)" />
           <div v-else class="main-image placeholder">
             <el-icon :size="72" color="#dcdfe6"><PictureFilled /></el-icon>
           </div>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { PictureFilled, ShoppingCartFull, ChatDotRound, Edit, Remove, View } from '@element-plus/icons-vue'
@@ -145,6 +145,7 @@ const sellerCredit = ref(0)
 
 const imageList = ref([])
 const currentImage = ref('')
+const failedImages = reactive(new Set())
 
 const conditionMap = { 1: '全新', 2: '几乎全新', 3: '良好', 4: '一般', 5: '较差' }
 const categoryMap = { book: '教材', electronic: '电子产品', clothing: '服饰', sports: '运动', daily: '生活', other: '其他' }
@@ -160,9 +161,13 @@ const fetchDetail = async () => {
     if (goods.value.userId) {
       try {
         const ur = await request.get(`/admin/users?page=1&pageSize=1&keyword=${goods.value.userId}`)
-      } catch {}
+        if (ur.data?.records?.length > 0) {
+          sellerName.value = ur.data.records[0].nickname
+          sellerCredit.value = ur.data.records[0].creditScore
+        }
+      } catch { /* seller info is optional */ }
     }
-  } catch { ElMessage.error('商品不存在') }
+  } catch { ElMessage.error('商品不存在或已下架') }
   finally { loading.value = false }
 }
 
@@ -177,7 +182,9 @@ const confirmBuy = async () => {
     await payOrder(orderId)
     ElMessage.success('付款成功（模拟）')
     router.push('/orders')
-  } catch { /* */ }
+  } catch {
+    ElMessage.error('下单失败，请重试')
+  }
   finally { buying.value = false }
 }
 

@@ -30,6 +30,16 @@ backend/src/main/resources/application.yml
 *~
 
 # ====================
+# Prevent nested repo
+# ====================
+campus-secondhand-trading/
+
+# ====================
+# MinIO Data
+# ====================
+minio/
+
+# ====================
 # OS
 # ====================
 .DS_Store
