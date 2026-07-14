@@ -6,6 +6,7 @@ export const useUserStore = defineStore('user', () => {
   const userInfo = ref(JSON.parse(localStorage.getItem('admin_user') || 'null'))
 
   const isLoggedIn = computed(() => !!token.value)
+  const isAdmin = computed(() => userInfo.value?.role === 'admin')
 
   function login(t, u) {
     token.value = t
@@ -21,5 +22,5 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('admin_user')
   }
 
-  return { token, userInfo, isLoggedIn, login, logout }
+  return { token, userInfo, isLoggedIn, isAdmin, login, logout }
 })

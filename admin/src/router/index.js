@@ -48,6 +48,9 @@ router.beforeEach((to, from, next) => {
     next()
   } else if (!store.token) {
     next('/login')
+  } else if (to.path.startsWith('/admin') && !store.isAdmin) {
+    // Non-admin users cannot access admin pages
+    next('/home')
   } else {
     next()
   }

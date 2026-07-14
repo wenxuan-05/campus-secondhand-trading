@@ -34,6 +34,11 @@ public class UserController {
         return Result.ok(userService.getProfile(UserContext.getUserId()));
     }
 
+    @GetMapping("/{id}")
+    public Result<User> getUserById(@PathVariable Long id) {
+        return Result.ok(userService.getPublicProfile(id));
+    }
+
     @PutMapping("/profile")
     public Result<User> updateProfile(@RequestBody User user) {
         return Result.ok(userService.updateProfile(UserContext.getUserId(), user));
