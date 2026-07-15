@@ -15,9 +15,16 @@ public class Order {
     private Long sellerId;
     private Long goodsId;
     private BigDecimal price;
-    private Integer status;       // 1=pending,2=paid,3=pickup_ready,4=completed,5=cancelled
+    // 10=待付款, 20=待面交, 25=待发货, 30=待确认, 40=待评价
+    // 50=已评价, 60=退款中, 70=退款纠纷, 80=已退款, 90=已取消, 100=已关闭
+    private Integer status;
     private String pickupCode;
     private String remark;
+    private String cancelReason;      // 取消原因
+    private LocalDateTime payTime;    // 支付时间
+    private LocalDateTime pickupTime; // 面交时间
+    private LocalDateTime confirmTime;// 确认收货时间
+    private LocalDateTime cancelTime; // 取消时间
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
     @TableField(fill = FieldFill.INSERT_UPDATE)

@@ -136,26 +136,26 @@ onMounted(fetchGoods)
 
 /* ===== 搜索区域 ===== */
 .search-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .search-wrapper {
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 16px;
-  padding: 4px 4px 4px 20px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  border-radius: 28px;
+  padding: 4px 4px 4px 24px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
   transition: box-shadow 0.3s;
-  max-width: 600px;
+  max-width: 640px;
 }
 
 .search-wrapper:focus-within {
-  box-shadow: 0 4px 24px rgba(64, 158, 255, 0.15);
+  box-shadow: 0 4px 24px rgba(255, 152, 0, 0.12);
 }
 
 .search-prefix {
-  color: #a8abb2;
+  color: #BFBFBF;
   flex-shrink: 0;
 }
 
@@ -164,14 +164,14 @@ onMounted(fetchGoods)
   border: none;
   outline: none;
   font-size: 15px;
-  padding: 12px 12px;
+  padding: 14px 12px;
   background: transparent;
-  color: #303133;
+  color: #1A1A1A;
   font-family: inherit;
 }
 
 .search-native-input::placeholder {
-  color: #c0c4cc;
+  color: #BFBFBF;
 }
 
 .search-clear {
@@ -179,9 +179,9 @@ onMounted(fetchGoods)
 }
 
 .search-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   padding: 0;
 }
 
@@ -190,7 +190,7 @@ onMounted(fetchGoods)
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
 }
 
@@ -198,29 +198,29 @@ onMounted(fetchGoods)
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 16px;
-  border-radius: 20px;
+  padding: 8px 18px;
+  border-radius: 24px;
   background: #fff;
   cursor: pointer;
   font-size: 13px;
   color: #606266;
   transition: all 0.25s;
   border: 1px solid transparent;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
   user-select: none;
 }
 
 .category-chip:hover {
-  color: #409eff;
-  border-color: #d9ecff;
-  background: #ecf5ff;
+  color: #FFB800;
+  border-color: #FFE9B8;
+  background: #FFF7E6;
 }
 
 .category-chip.active {
-  background: #409eff;
+  background: linear-gradient(135deg, #FFD000, #FF9500);
   color: #fff;
-  border-color: #409eff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(255, 152, 0, 0.3);
 }
 
 .category-icon {
@@ -243,7 +243,7 @@ onMounted(fetchGoods)
 .goods-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 18px;
   min-height: 200px;
 }
 
@@ -253,16 +253,16 @@ onMounted(fetchGoods)
 
 .goods-card {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.25s, box-shadow 0.25s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .goods-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 16px 36px rgba(255, 152, 0, 0.08);
 }
 
 .goods-card:active {
@@ -270,12 +270,12 @@ onMounted(fetchGoods)
 }
 
 .card-image {
-  height: 180px;
+  height: 200px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8f9fb, #f0f2f5);
+  background: linear-gradient(135deg, #fafbfc, #F5F6F8);
   overflow: hidden;
 }
 
@@ -296,19 +296,19 @@ onMounted(fetchGoods)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafbfc;
+  background: #FAFBFC;
 }
 
 .card-badge {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: linear-gradient(135deg, #67c23a, #5daf34);
+  background: linear-gradient(135deg, #FFB800, #FF9500);
   color: #fff;
   font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
   letter-spacing: 1px;
 }
 
@@ -319,7 +319,7 @@ onMounted(fetchGoods)
 .card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: #1A1A1A;
   margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -329,7 +329,7 @@ onMounted(fetchGoods)
 
 .card-desc {
   font-size: 12px;
-  color: #a8abb2;
+  color: #BFBFBF;
   margin-bottom: 12px;
   height: 18px;
   overflow: hidden;
@@ -343,21 +343,21 @@ onMounted(fetchGoods)
 }
 
 .card-price {
-  font-size: 20px;
-  font-weight: 700;
-  color: #f56c6c;
+  font-size: 22px;
+  font-weight: 800;
+  color: #FF4D4F;
   line-height: 1;
 }
 
 .price-symbol {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   margin-right: 1px;
 }
 
 .card-meta {
   font-size: 12px;
-  color: #c0c4cc;
+  color: #BFBFBF;
   display: flex;
   align-items: center;
   gap: 3px;
@@ -371,13 +371,13 @@ onMounted(fetchGoods)
 
 .empty-title {
   font-size: 16px;
-  color: #909399;
+  color: #8C8C8C;
   margin: 16px 0 8px;
 }
 
 .empty-desc {
   font-size: 13px;
-  color: #c0c4cc;
+  color: #BFBFBF;
   margin-bottom: 24px;
 }
 
@@ -385,7 +385,7 @@ onMounted(fetchGoods)
 .pagination-wrap {
   display: flex;
   justify-content: center;
-  margin-top: 36px;
+  margin-top: 40px;
   padding-bottom: 20px;
 }
 </style>

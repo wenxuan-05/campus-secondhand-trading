@@ -93,9 +93,9 @@ const handleLogout = () => { store.logout(); router.push('/login') }
 
 .aside-logo-icon {
   width: 38px; height: 38px; border-radius: 10px;
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  background: linear-gradient(135deg, #FFD000, #FF9500);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; box-shadow: 0 4px 12px rgba(64,158,255,0.3);
+  color: #fff; box-shadow: 0 4px 12px rgba(255,152,0,0.3);
 }
 
 .aside-logo-title { font-size: 17px; font-weight: 700; color: #fff; }
@@ -113,10 +113,10 @@ const handleLogout = () => { store.logout(); router.push('/login') }
   margin-bottom: 2px;
 }
 .menu-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.menu-item.active { color: #fff; background: rgba(64,158,255,0.15); }
+.menu-item.active { color: #fff; background: rgba(255,184,0,0.15); }
 .menu-active-bar {
   position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 28px; background: #409eff; border-radius: 0 4px 4px 0;
+  width: 3px; height: 28px; background: #FFB800; border-radius: 0 4px 4px 0;
 }
 
 /* ===== 右侧 ===== */

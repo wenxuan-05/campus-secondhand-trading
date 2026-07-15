@@ -1,6 +1,7 @@
 package com.campus.secondhand.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.campus.secondhand.entity.ChatMessage;
@@ -31,12 +32,12 @@ public class ChatMessageServiceImpl extends ServiceImpl<ChatMessageMapper, ChatM
 
     @Override
     public List<String> getSessionIds(Long userId) {
-        // Find all distinct session IDs where this user participated
-        LambdaQueryWrapper<ChatMessage> wrapper = new LambdaQueryWrapper<ChatMessage>()
-                .and(w -> w.eq(ChatMessage::getSenderId, userId).or().eq(ChatMessage::getReceiverId, userId))
-                .select(ChatMessage::getSessionId)
-                .groupBy(ChatMessage::getSessionId)
-                .orderByDesc(ChatMessage::getCreatedAt);
+        // Use QueryWrapper (not LambdaQueryWrapper) to allow raw SQL aggregate in ORDER BY
+        QueryWrapper<ChatMessage> wrapper = new QueryWrapper<ChatMessage>()
+                .and(w -> w.eq("sender_id", userId).or().eq("receiver_id", userId))
+                .select("session_id")
+                .groupBy("session_id")
+                .orderByDesc("MAX(created_at)");
         return list(wrapper).stream().map(ChatMessage::getSessionId).toList();
     }
 }

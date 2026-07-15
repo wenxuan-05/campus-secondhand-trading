@@ -6,19 +6,20 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
-    meta: { noAuth: true }
+    meta: { title: '登录' }
   },
   {
     path: '/',
     component: () => import('../views/Layout.vue'),
     redirect: '/home',
     children: [
-      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '二手市场', noAuth: true } },
-      { path: 'goods/:id', name: 'GoodsDetail', component: () => import('../views/GoodsDetail.vue'), meta: { title: '商品详情', noAuth: true } },
+      { path: 'home', name: 'Home', component: () => import('../views/Home.vue'), meta: { title: '二手市场' } },
+      { path: 'goods/:id', name: 'GoodsDetail', component: () => import('../views/GoodsDetail.vue'), meta: { title: '商品详情' } },
       { path: 'publish', name: 'Publish', component: () => import('../views/PublishGoods.vue'), meta: { title: '发布商品' } },
       { path: 'publish/:id', name: 'EditGoods', component: () => import('../views/PublishGoods.vue'), meta: { title: '编辑商品' } },
       { path: 'my-goods', name: 'MyGoods', component: () => import('../views/MyGoods.vue'), meta: { title: '我的商品' } },
       { path: 'orders', name: 'Orders', component: () => import('../views/MyOrders.vue'), meta: { title: '我的订单' } },
+      { path: 'favorites', name: 'Favorites', component: () => import('../views/MyFavorites.vue'), meta: { title: '我的收藏' } },
       { path: 'chat', name: 'Chat', component: () => import('../views/Chat.vue'), meta: { title: '消息' } },
       { path: 'chat/:sessionId', name: 'ChatDetail', component: () => import('../views/Chat.vue'), meta: { title: '消息' } },
       { path: 'profile', name: 'Profile', component: () => import('../views/Profile.vue'), meta: { title: '个人中心' } }
@@ -44,13 +45,9 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const store = useUserStore()
-  if (to.meta.noAuth) {
-    next()
-  } else if (!store.token) {
+  // Admin routes still require login
+  if (to.path.startsWith('/admin') && !store.token) {
     next('/login')
-  } else if (to.path.startsWith('/admin') && !store.isAdmin) {
-    // Non-admin users cannot access admin pages
-    next('/home')
   } else {
     next()
   }

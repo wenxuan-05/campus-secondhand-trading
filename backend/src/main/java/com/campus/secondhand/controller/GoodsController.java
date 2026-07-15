@@ -28,20 +28,31 @@ public class GoodsController {
         return Result.ok(goodsService.updateGoods(id, dto, UserContext.getUserId()));
     }
 
+    /** Take off shelf (status → 4) */
     @PutMapping("/{id}/off")
     public Result<Void> offShelf(@PathVariable Long id) {
-        if (UserContext.isAdmin()) {
-            goodsService.adminOffShelf(id);
-        } else {
-            goodsService.offShelf(id, UserContext.getUserId());
-        }
+        goodsService.offShelf(id, UserContext.getUserId());
         return Result.ok();
     }
 
+    /** Put back on shelf (status → 2) */
     @PutMapping("/{id}/on")
     public Result<Void> onShelf(@PathVariable Long id) {
-        // Only owner can relist their own goods
         goodsService.onShelf(id, UserContext.getUserId());
+        return Result.ok();
+    }
+
+    /** Refresh goods (update refresh_time, bump ranking) */
+    @PutMapping("/{id}/refresh")
+    public Result<Void> refreshGoods(@PathVariable Long id) {
+        goodsService.refreshGoods(id, UserContext.getUserId());
+        return Result.ok();
+    }
+
+    /** Delete goods (logical delete, status → 6) */
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteGoods(@PathVariable Long id) {
+        goodsService.deleteGoods(id, UserContext.getUserId());
         return Result.ok();
     }
 

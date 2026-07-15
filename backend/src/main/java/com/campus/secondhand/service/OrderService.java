@@ -13,4 +13,9 @@ public interface OrderService extends IService<Order> {
     Order cancel(Long orderId, Long userId);
     Page<Order> buyerOrders(Long buyerId, int page, int pageSize);
     Page<Order> sellerOrders(Long sellerId, int page, int pageSize);
+
+    /** Scheduled tasks */
+    int autoCancelUnpaidOrders();
+    int autoConfirmOrders();
+    int autoOffShelfExpiredGoods();
 }

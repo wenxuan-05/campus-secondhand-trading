@@ -177,10 +177,10 @@ const handleSubmit = async () => {
 .publish-page { max-width: 800px; margin: 0 auto; padding-bottom: 40px; }
 
 .page-top { margin-bottom: 24px; }
-.page-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 0 0 6px; }
-.page-desc { font-size: 14px; color: #909399; margin: 0; }
+.page-title { font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0 0 6px; }
+.page-desc { font-size: 14px; color: #8C8C8C; margin: 0; }
 
-.form-card { border-radius: 14px; overflow: hidden; }
+.form-card { border-radius: 16px; overflow: hidden; }
 .publish-form { padding: 8px 0; }
 
 /* ===== 上传区 ===== */
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
 .upload-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
 
 .upload-preview-item {
-  width: 108px; height: 108px; border-radius: 10px; overflow: hidden;
+  width: 108px; height: 108px; border-radius: 12px; overflow: hidden;
   position: relative; cursor: pointer;
 }
 .upload-preview-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -201,18 +201,18 @@ const handleSubmit = async () => {
 
 .upload-add-box {
   width: 108px; height: 108px; border: 2px dashed #dcdfe6;
-  border-radius: 10px; display: flex; flex-direction: column;
+  border-radius: 12px; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 6px;
-  color: #c0c4cc; transition: all 0.25s; font-size: 13px;
+  color: #BFBFBF; transition: all 0.25s; font-size: 13px;
   cursor: pointer;
 }
-.upload-add-box:hover { border-color: #409eff; color: #409eff; background: #f0f7ff; }
+.upload-add-box:hover { border-color: #FFB800; color: #FFB800; background: #FFF7E6; }
 
-.upload-tip { font-size: 13px; color: #c0c4cc; margin: 10px 0 0; }
+.upload-tip { font-size: 13px; color: #BFBFBF; margin: 10px 0 0; }
 
 /* ===== 提交按钮 ===== */
 .submit-btn {
-  padding: 14px 36px; font-size: 16px; font-weight: 600;
-  border-radius: 12px; letter-spacing: 1px;
+  padding: 14px 36px; font-size: 16px; font-weight: 700;
+  border-radius: 28px; letter-spacing: 1px;
 }
 </style>

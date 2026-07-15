@@ -11,58 +11,73 @@
         </router-link>
 
         <div class="nav-actions">
-          <router-link to="/publish" class="publish-btn-link">
-            <el-button type="primary" :icon="Plus" round size="large">发布</el-button>
-          </router-link>
+          <template v-if="store.isLoggedIn">
+            <!-- 已登录 -->
+            <router-link to="/publish" class="publish-btn-link">
+              <el-button type="primary" :icon="Plus" round size="large">发布</el-button>
+            </router-link>
 
-          <router-link to="/chat" class="nav-icon">
-            <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
-              <div class="icon-btn">
-                <el-icon :size="22"><ChatDotRound /></el-icon>
-              </div>
-            </el-badge>
-          </router-link>
-
-          <el-dropdown trigger="click" @command="handleCommand" popper-class="user-dropdown">
-            <span class="user-trigger">
-              <el-avatar :size="36" :src="store.userInfo?.avatar" class="user-avatar">
-                {{ store.userInfo?.nickname?.[0] || 'U' }}
-              </el-avatar>
-              <span class="nickname">{{ store.userInfo?.nickname || '用户' }}</span>
-              <el-icon :size="14" class="arrow-icon"><ArrowDown /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <div class="dropdown-user-info">
-                  <el-avatar :size="44" :src="store.userInfo?.avatar">
-                    {{ store.userInfo?.nickname?.[0] || 'U' }}
-                  </el-avatar>
-                  <div>
-                    <div class="dropdown-name">{{ store.userInfo?.nickname }}</div>
-                    <div class="dropdown-id">学号 {{ store.userInfo?.studentId }}</div>
-                  </div>
+            <router-link to="/chat" class="nav-icon">
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
+                <div class="icon-btn">
+                  <el-icon :size="22"><ChatDotRound /></el-icon>
                 </div>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon> 个人中心
-                </el-dropdown-item>
-                <el-dropdown-item command="myGoods">
-                  <el-icon><Goods /></el-icon> 我的商品
-                </el-dropdown-item>
-                <el-dropdown-item command="orders">
-                  <el-icon><Document /></el-icon> 我的订单
-                </el-dropdown-item>
-                <el-dropdown-item command="chat">
-                  <el-icon><ChatDotRound /></el-icon> 我的消息
-                </el-dropdown-item>
-                <el-dropdown-item command="admin" divided>
-                  <el-icon><Setting /></el-icon> 管理后台
-                </el-dropdown-item>
-                <el-dropdown-item command="logout" divided>
-                  <el-icon><SwitchButton /></el-icon> 退出登录
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+              </el-badge>
+            </router-link>
+
+            <el-dropdown trigger="click" @command="handleCommand" popper-class="user-dropdown">
+              <span class="user-trigger">
+                <el-avatar :size="36" :src="store.userInfo?.avatar" class="user-avatar">
+                  {{ store.userInfo?.nickname?.[0] || 'U' }}
+                </el-avatar>
+                <span class="nickname">{{ store.userInfo?.nickname || '用户' }}</span>
+                <el-icon :size="14" class="arrow-icon"><ArrowDown /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <div class="dropdown-user-info">
+                    <el-avatar :size="44" :src="store.userInfo?.avatar">
+                      {{ store.userInfo?.nickname?.[0] || 'U' }}
+                    </el-avatar>
+                    <div>
+                      <div class="dropdown-name">{{ store.userInfo?.nickname }}</div>
+                      <div class="dropdown-id">学号 {{ store.userInfo?.studentId }}</div>
+                    </div>
+                  </div>
+                  <el-dropdown-item command="profile">
+                    <el-icon><User /></el-icon> 个人中心
+                  </el-dropdown-item>
+                  <el-dropdown-item command="myGoods">
+                    <el-icon><Goods /></el-icon> 我的商品
+                  </el-dropdown-item>
+                  <el-dropdown-item command="orders">
+                    <el-icon><Document /></el-icon> 我的订单
+                  </el-dropdown-item>
+                  <el-dropdown-item command="favorites">
+                    <el-icon><Star /></el-icon> 我的收藏
+                  </el-dropdown-item>
+                  <el-dropdown-item command="chat">
+                    <el-icon><ChatDotRound /></el-icon> 我的消息
+                  </el-dropdown-item>
+                  <el-dropdown-item command="admin" divided>
+                    <el-icon><Setting /></el-icon> 管理后台
+                  </el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>
+                    <el-icon><SwitchButton /></el-icon> 退出登录
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+          <template v-else>
+            <!-- 未登录 -->
+            <el-button class="publish-btn-link" type="primary" :icon="Plus" round size="large" @click="showLoginTip">
+              发布
+            </el-button>
+            <el-button class="nav-login-btn" round size="large" @click="$router.push('/profile')">
+              登录 / 注册
+            </el-button>
+          </template>
         </div>
       </div>
     </header>
@@ -71,6 +86,15 @@
     <main class="main-content">
       <router-view />
     </main>
+
+    <!-- 登录提示弹窗 -->
+    <el-dialog v-model="loginTipVisible" title="🔐 需要登录" width="400px" :close-on-click-modal="false" class="login-tip-dialog">
+      <p class="login-tip-text">登录后即可发布商品、联系卖家、进行交易</p>
+      <template #footer>
+        <el-button @click="loginTipVisible = false" round>稍后再说</el-button>
+        <el-button type="primary" @click="loginTipVisible = false; $router.push('/profile')" round>去登录</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -81,12 +105,15 @@ import { useUserStore } from '../stores/user'
 import { getProfile } from '../api/user'
 import {
   Plus, ArrowDown, User, Goods, Document, ChatDotRound,
-  ShoppingCartFull, Setting, SwitchButton
+  ShoppingCartFull, Setting, SwitchButton, Star
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const store = useUserStore()
 const unreadCount = ref(0)
+const loginTipVisible = ref(false)
+
+const showLoginTip = () => { loginTipVisible.value = true }
 
 // 页面加载时从服务器获取最新的用户信息
 onMounted(async () => {
@@ -116,15 +143,15 @@ const handleCommand = (cmd) => {
 <style scoped>
 .app-layout {
   min-height: 100vh;
-  background: #f0f2f5;
+  background: #F5F6F8;
 }
 
 /* ===== 导航栏 ===== */
 .navbar {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 4px 20px rgba(0,0,0,0.03);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -156,16 +183,16 @@ const handleCommand = (cmd) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  background: linear-gradient(135deg, #FFD000, #FF9500);
   border-radius: 10px;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
 }
 
 .logo-text {
   font-size: 20px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1A1A1A;
   letter-spacing: 1px;
 }
 
@@ -184,6 +211,21 @@ const handleCommand = (cmd) => {
   font-weight: 600;
   letter-spacing: 1px;
   padding: 10px 24px;
+}
+
+.nav-login-btn {
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 10px 24px;
+  border: 2px solid #FFB800;
+  color: #FFB800;
+  background: #FFF;
+  transition: all 0.25s;
+}
+.nav-login-btn:hover {
+  background: #FFF7E6;
+  border-color: #FF9500;
+  color: #FF9500;
 }
 
 .nav-icon {
@@ -205,8 +247,8 @@ const handleCommand = (cmd) => {
 }
 
 .icon-btn:hover {
-  background: #ecf5ff;
-  color: #409eff;
+  background: #FFF7E6;
+  color: #FFB800;
 }
 
 /* 用户下拉触发器 */
@@ -222,7 +264,7 @@ const handleCommand = (cmd) => {
 }
 
 .user-trigger:hover {
-  background: #ecf5ff;
+  background: #FFF7E6;
 }
 
 .user-avatar {
@@ -255,13 +297,22 @@ const handleCommand = (cmd) => {
   padding: 24px;
   min-height: calc(100vh - 64px);
 }
+
+/* ===== 登录提示弹窗 ===== */
+.login-tip-text {
+  text-align: center;
+  font-size: 15px;
+  color: #606266;
+  margin: 0;
+  line-height: 1.6;
+}
 </style>
 
 <!-- 下拉菜单全局样式（不能scoped，因为el-dropdown的popper挂载到body） -->
 <style>
 .user-dropdown {
-  border-radius: 14px !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important;
   border: 1px solid rgba(0,0,0,0.04) !important;
   overflow: hidden;
 }
@@ -275,19 +326,19 @@ const handleCommand = (cmd) => {
   align-items: center;
   gap: 12px;
   padding: 14px 14px 12px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid #F0F0F0;
   margin-bottom: 4px;
 }
 
 .dropdown-name {
   font-weight: 600;
   font-size: 15px;
-  color: #1a1a2e;
+  color: #1A1A1A;
 }
 
 .dropdown-id {
   font-size: 12px;
-  color: #909399;
+  color: #8C8C8C;
   margin-top: 2px;
 }
 </style>

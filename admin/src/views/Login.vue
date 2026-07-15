@@ -340,7 +340,7 @@ onMounted(() => {
 /* ========== 左侧品牌区 ========== */
 .login-left {
   flex: 1;
-  background: linear-gradient(160deg, #1e3a5f 0%, #2d5a87 30%, #409eff 70%, #5b9bd5 100%);
+  background: linear-gradient(160deg, #5a3e00 0%, #8a6200 30%, #FFB800 70%, #FFD000 100%);
   padding: 56px 44px;
   display: flex;
   align-items: center;
@@ -500,8 +500,8 @@ onMounted(() => {
 
 .custom-input :deep(.el-input__wrapper.is-focus) {
   background: #fff;
-  border-color: #409eff;
-  box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+  border-color: #FFB800;
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, 0.1);
 }
 
 .custom-input :deep(.el-input__inner) {
@@ -519,7 +519,7 @@ onMounted(() => {
 }
 
 .custom-input :deep(.el-input__wrapper.is-focus .el-input__prefix) {
-  color: #409eff;
+  color: #FFB800;
 }
 
 /* ========== 登录按钮 ========== */
@@ -531,15 +531,15 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 4px;
   border: none;
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #FFD000 0%, #FF9500 100%);
   transition: all 0.3s ease;
   margin-top: 6px;
 }
 
 .login-btn:hover {
-  background: linear-gradient(135deg, #5cadff 0%, #409eff 100%);
+  background: linear-gradient(135deg, #FFE04D 0%, #FFB800 100%);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(64, 158, 255, 0.35);
+  box-shadow: 0 8px 24px rgba(255, 152, 0, 0.35);
 }
 
 .login-btn:active {
@@ -547,7 +547,7 @@ onMounted(() => {
 }
 
 .login-btn.is-loading {
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #FFD000 0%, #FF9500 100%);
 }
 
 /* ========== 注册入口 ========== */
@@ -566,7 +566,7 @@ onMounted(() => {
 }
 
 .register-link {
-  color: #409eff;
+  color: #FFB800;
   text-decoration: none;
   font-weight: 600;
   display: inline-flex;
@@ -578,8 +578,8 @@ onMounted(() => {
 }
 
 .register-link:hover {
-  color: #337ecc;
-  border-bottom-color: #337ecc;
+  color: #FF9500;
+  border-bottom-color: #FF9500;
 }
 
 .register-link .el-icon {

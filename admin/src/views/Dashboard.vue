@@ -22,7 +22,7 @@
       </template>
       <div class="overview-grid">
         <div class="overview-item">
-          <span class="overview-dot" style="background:#409eff"></span>
+          <span class="overview-dot" style="background:#FFB800"></span>
           <div>
             <div class="overview-title">平台用户</div>
             <div class="overview-desc">已注册的校园用户总数</div>
@@ -64,7 +64,7 @@ import { UserFilled, Goods, ShoppingCartFull, Document } from '@element-plus/ico
 import { getStats } from '../api/order'
 
 const cards = ref([
-  { label: '总用户数', value: 0, icon: UserFilled, color: '#409eff' },
+  { label: '总用户数', value: 0, icon: UserFilled, color: '#FFB800' },
   { label: '总商品数', value: 0, icon: Goods, color: '#67c23a' },
   { label: '在售商品', value: 0, icon: ShoppingCartFull, color: '#e6a23c' },
   { label: '总订单数', value: 0, icon: Document, color: '#f56c6c' },
@@ -75,7 +75,7 @@ onMounted(async () => {
     const res = await getStats()
     const d = res.data
     cards.value = [
-      { label: '总用户数', value: d.totalUsers, icon: UserFilled, color: '#409eff' },
+      { label: '总用户数', value: d.totalUsers, icon: UserFilled, color: '#FFB800' },
       { label: '总商品数', value: d.totalGoods, icon: Goods, color: '#67c23a' },
       { label: '在售商品', value: d.onSaleGoods, icon: ShoppingCartFull, color: '#e6a23c' },
       { label: '总订单数', value: d.totalOrders, icon: Document, color: '#f56c6c' },
@@ -93,13 +93,13 @@ onMounted(async () => {
 @media (max-width: 600px) { .stat-grid { grid-template-columns: 1fr; } }
 
 .stat-card {
-  background: #fff; border-radius: 14px; padding: 24px;
+  background: #fff; border-radius: 16px; padding: 24px;
   display: flex; align-items: center; gap: 18px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: default;
 }
-.stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
 
 .stat-icon-wrap {
   width: 60px; height: 60px; border-radius: 14px;
@@ -109,23 +109,23 @@ onMounted(async () => {
 }
 
 .stat-info { flex: 1; }
-.stat-value { font-size: 32px; font-weight: 800; color: #1a1a2e; line-height: 1.1; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.stat-value { font-size: 32px; font-weight: 800; color: #1A1A1A; line-height: 1.1; }
+.stat-label { font-size: 13px; color: #8C8C8C; margin-top: 4px; }
 
 /* ===== 概况卡片 ===== */
-.overview-card { border-radius: 14px; }
-.overview-header { font-weight: 600; color: #1a1a2e; }
+.overview-card { border-radius: 16px; }
+.overview-header { font-weight: 600; color: #1A1A1A; }
 
 .overview-grid { display: flex; flex-direction: column; gap: 0; }
 .overview-item {
   display: flex; align-items: center; gap: 16px;
-  padding: 18px 8px; border-bottom: 1px solid #f5f7fa;
+  padding: 18px 8px; border-bottom: 1px solid #F5F6F8;
 }
 .overview-item:last-child { border-bottom: none; }
 
 .overview-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .overview-title { font-size: 14px; font-weight: 600; color: #303133; }
-.overview-desc { font-size: 12px; color: #c0c4cc; margin-top: 2px; }
+.overview-desc { font-size: 12px; color: #BFBFBF; margin-top: 2px; }
 .overview-item > div:nth-child(2) { flex: 1; }
-.overview-num { font-size: 22px; color: #1a1a2e; }
+.overview-num { font-size: 22px; color: #1A1A1A; }
 </style>

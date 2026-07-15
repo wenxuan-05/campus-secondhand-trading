@@ -8,9 +8,9 @@
           <div v-else class="main-image placeholder">
             <el-icon :size="72" color="#dcdfe6"><PictureFilled /></el-icon>
           </div>
-          <div class="image-status" v-if="goods.status !== 1">
-            <el-tag :type="goods.status === 2 ? 'danger' : 'info'" size="large" effect="dark">
-              {{ goods.status === 2 ? '已售出' : '已下架' }}
+          <div class="image-status" v-if="goods.status !== 2">
+            <el-tag :type="goods.status === 3 ? 'danger' : 'info'" size="large" effect="dark">
+              {{ goods.status === 3 ? '已售出' : goods.status === 4 ? '已下架' : '不可用' }}
             </el-tag>
           </div>
         </div>
@@ -64,11 +64,11 @@
             size="large"
             :icon="ShoppingCartFull"
             @click="handleBuy"
-            :disabled="goods.status !== 1"
+            :disabled="goods.status !== 2"
             class="btn-buy"
             round
           >
-            {{ goods.status === 2 ? '已售出' : goods.status === 0 ? '已下架' : '立即购买' }}
+            {{ goods.status === 3 ? '已售出' : goods.status === 4 ? '已下架' : '立即购买' }}
           </el-button>
           <el-button
             size="large"
@@ -79,10 +79,20 @@
           >
             联系卖家
           </el-button>
+          <el-button
+            size="large"
+            :icon="Star"
+            @click="toggleFavorite"
+            :type="isFavorited ? 'warning' : 'default'"
+            class="btn-fav"
+            round
+          >
+            {{ isFavorited ? '已收藏' : '收藏' }}
+          </el-button>
         </div>
         <div class="actions" v-else>
           <el-button type="warning" :icon="Edit" @click="editGoods" round>编辑商品</el-button>
-          <el-button v-if="goods.status === 1" :icon="Remove" @click="handleOff" round>下架</el-button>
+          <el-button v-if="goods.status === 2" :icon="Remove" @click="handleOff" round>下架</el-button>
         </div>
       </div>
     </div>
@@ -125,10 +135,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { PictureFilled, ShoppingCartFull, ChatDotRound, Edit, Remove, View } from '@element-plus/icons-vue'
+import { PictureFilled, ShoppingCartFull, ChatDotRound, Edit, Remove, View, Star } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import { getDetail, offShelf } from '../api/goods'
 import { createOrder, payOrder } from '../api/order'
+import { addFavorite, removeFavorite, checkFavorite } from '../api/favorite'
 import request from '../utils/request'
 
 const route = useRoute()
@@ -142,6 +153,7 @@ const buying = ref(false)
 const remark = ref('')
 const sellerName = ref('')
 const sellerCredit = ref(0)
+const isFavorited = ref(false)
 
 const imageList = ref([])
 const currentImage = ref('')
@@ -167,8 +179,30 @@ const fetchDetail = async () => {
         }
       } catch { /* seller info is optional */ }
     }
+    // Check favorite status
+    if (store.isLoggedIn) {
+      try {
+        const r = await checkFavorite(goods.value.id)
+        isFavorited.value = r.data.favorited
+      } catch {}
+    }
   } catch { ElMessage.error('商品不存在或已下架') }
   finally { loading.value = false }
+}
+
+const toggleFavorite = async () => {
+  if (!store.isLoggedIn) { ElMessage.warning('请先登录'); return }
+  try {
+    if (isFavorited.value) {
+      await removeFavorite(goods.value.id)
+      isFavorited.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await addFavorite(goods.value.id)
+      isFavorited.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (e) { ElMessage.error(e.response?.data?.message || '操作失败') }
 }
 
 const handleBuy = () => { buyVisible.value = true }
@@ -214,27 +248,27 @@ onMounted(fetchDetail)
 .image-gallery { flex: 1; min-width: 0; }
 .main-image-wrap { position: relative; }
 .main-image {
-  width: 100%; height: 420px; object-fit: cover; border-radius: 16px;
+  width: 100%; height: 420px; object-fit: cover; border-radius: 20px;
   background: #f8f9fb; display: flex; align-items: center; justify-content: center;
 }
-.main-image.placeholder { background: #f5f7fa; }
+.main-image.placeholder { background: #F5F6F8; }
 .image-status { position: absolute; top: 16px; left: 16px; }
 .thumb-list { display: flex; gap: 10px; margin-top: 14px; }
 .thumb-list img {
-  width: 68px; height: 68px; object-fit: cover; border-radius: 10px;
+  width: 68px; height: 68px; object-fit: cover; border-radius: 12px;
   cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
 }
 .thumb-list img:hover { opacity: 0.8; }
-.thumb-list img.active { border-color: #409eff; box-shadow: 0 0 0 3px rgba(64,158,255,0.15); }
+.thumb-list img.active { border-color: #FFB800; box-shadow: 0 0 0 3px rgba(255,184,0,0.15); }
 
 /* ===== 信息区 ===== */
 .info-section { flex: 1; display: flex; flex-direction: column; }
 .info-header { margin-bottom: 16px; }
-.title { font-size: 22px; font-weight: 700; color: #1a1a2e; line-height: 1.4; margin: 0; }
+.title { font-size: 22px; font-weight: 700; color: #1A1A1A; line-height: 1.4; margin: 0; }
 
 .price-card {
-  background: linear-gradient(135deg, #fff5f5, #fff0f0);
-  border-radius: 14px;
+  background: linear-gradient(135deg, #FFF7E6, #FFF1D6);
+  border-radius: 16px;
   padding: 18px 20px;
   margin-bottom: 18px;
   display: flex;
@@ -242,9 +276,9 @@ onMounted(fetchDetail)
   gap: 14px;
 }
 .price-main { line-height: 1; }
-.price-symbol { font-size: 18px; font-weight: 700; color: #f56c6c; }
-.price-value { font-size: 34px; font-weight: 800; color: #f56c6c; }
-.original-price { font-size: 14px; color: #c0c4cc; text-decoration: line-through; }
+.price-symbol { font-size: 18px; font-weight: 700; color: #FF4D4F; }
+.price-value { font-size: 34px; font-weight: 800; color: #FF4D4F; }
+.original-price { font-size: 14px; color: #BFBFBF; text-decoration: line-through; }
 
 .info-tags {
   display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
@@ -252,7 +286,7 @@ onMounted(fetchDetail)
 }
 .info-meta-right {
   margin-left: auto; display: flex; align-items: center; gap: 14px;
-  font-size: 13px; color: #909399;
+  font-size: 13px; color: #8C8C8C;
 }
 .meta-item { display: flex; align-items: center; gap: 4px; }
 
@@ -261,20 +295,24 @@ onMounted(fetchDetail)
 .desc-content { font-size: 14px; line-height: 1.8; color: #606266; white-space: pre-wrap; }
 
 .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn-buy { padding: 14px 32px; font-size: 16px; font-weight: 600; letter-spacing: 2px; }
-.btn-chat { padding: 14px 28px; font-size: 15px; }
+.btn-buy {
+  padding: 14px 32px; font-size: 16px; font-weight: 700; letter-spacing: 2px;
+  border-radius: 28px;
+}
+.btn-chat { padding: 14px 28px; font-size: 15px; border-radius: 28px; }
+.btn-fav { border-radius: 28px; }
 
 /* ===== 卖家卡片 ===== */
-.seller-card { max-width: 460px; border-radius: 14px; }
+.seller-card { max-width: 460px; border-radius: 16px; }
 .seller-card-inner { display: flex; align-items: center; gap: 14px; }
-.seller-avatar { background: linear-gradient(135deg, #409eff, #5cadff); color: #fff; font-size: 20px; }
+.seller-avatar { background: linear-gradient(135deg, #FFD000, #FF9500); color: #fff; font-size: 20px; }
 .seller-info { flex: 1; }
-.seller-name { font-size: 16px; font-weight: 600; color: #1a1a2e; }
-.seller-credit { font-size: 13px; color: #909399; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-.credit-dot { width: 7px; height: 7px; border-radius: 50%; background: #67c23a; display: inline-block; }
+.seller-name { font-size: 16px; font-weight: 600; color: #1A1A1A; }
+.seller-credit { font-size: 13px; color: #8C8C8C; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.credit-dot { width: 7px; height: 7px; border-radius: 50%; background: #52C41A; display: inline-block; }
 
 /* ===== 购买弹窗 ===== */
 .buy-order-info { text-align: center; }
-.buy-goods-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
-.buy-goods-price { font-size: 28px; font-weight: 700; color: #f56c6c; }
+.buy-goods-title { font-size: 16px; font-weight: 600; color: #1A1A1A; margin-bottom: 8px; }
+.buy-goods-price { font-size: 28px; font-weight: 700; color: #FF4D4F; }
 </style>

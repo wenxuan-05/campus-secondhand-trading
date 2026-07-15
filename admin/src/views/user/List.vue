@@ -93,18 +93,18 @@ onMounted(fetchData)
 .admin-page { max-width: 1200px; }
 
 .page-top { margin-bottom: 20px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-.page-sub { font-size: 13px; color: #909399; margin: 0; }
+.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
+.page-sub { font-size: 13px; color: #8C8C8C; margin: 0; }
 
-.table-card { border-radius: 14px; overflow: hidden; }
+.table-card { border-radius: 16px; overflow: hidden; }
 
 .table-toolbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 0 0 16px;
 }
-.toolbar-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+.toolbar-title { font-size: 15px; font-weight: 600; color: #1A1A1A; }
 
-.high-score { color: #67c23a; font-weight: 700; }
+.high-score { color: #52C41A; font-weight: 700; }
 
 .table-footer { display: flex; justify-content: flex-end; padding: 20px 0 8px; }
 </style>

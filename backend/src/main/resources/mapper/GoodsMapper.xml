@@ -5,7 +5,7 @@
 
     <select id="selectGoodsPage" resultType="com.campus.secondhand.entity.Goods">
         SELECT * FROM goods
-        WHERE status = 1
+        WHERE status = 2
         <if test="query.keyword != null and query.keyword != ''">
             AND (title LIKE '%' + #{query.keyword} + '%' OR description LIKE '%' + #{query.keyword} + '%')
         </if>

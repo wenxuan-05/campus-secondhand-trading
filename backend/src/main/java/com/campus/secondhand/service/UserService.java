@@ -11,6 +11,5 @@ public interface UserService extends IService<User> {
     Map<String, Object> login(LoginDTO dto);
     User register(RegisterDTO dto);
     User getProfile(Long userId);
-    User getPublicProfile(Long userId);
     User updateProfile(Long userId, User user);
 }

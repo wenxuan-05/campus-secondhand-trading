@@ -34,8 +34,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user.getStatus() == 0) {
             throw new BusinessException("账号已被禁用");
         }
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getStudentId(),
-                user.getRole() != null ? user.getRole() : "user");
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getStudentId());
         return Map.of("token", token, "user", sanitize(user));
     }
 
@@ -55,22 +54,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPhone(dto.getPhone() != null ? dto.getPhone() : "");
         user.setCreditScore(100);
         user.setStatus(1);
-        user.setRole("user");
         save(user);
         return sanitize(user);
     }
 
     @Override
     public User getProfile(Long userId) {
-        User user = getById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
-        }
-        return sanitize(user);
-    }
-
-    @Override
-    public User getPublicProfile(Long userId) {
         User user = getById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");

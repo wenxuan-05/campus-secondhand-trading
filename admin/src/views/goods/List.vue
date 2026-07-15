@@ -12,9 +12,11 @@
         <div class="toolbar-title">商品列表</div>
         <div class="toolbar-right">
           <el-select v-model="filterStatus" placeholder="全部状态" style="width:140px" clearable @change="fetchData" round>
-            <el-option label="在售" :value="1" />
-            <el-option label="下架" :value="0" />
-            <el-option label="已售" :value="2" />
+            <el-option label="在售" :value="2" />
+            <el-option label="草稿" :value="0" />
+            <el-option label="审核中" :value="1" />
+            <el-option label="已售" :value="3" />
+            <el-option label="已下架" :value="4" />
           </el-select>
           <el-input v-model="keyword" placeholder="搜索商品标题..." style="width:260px" clearable @change="fetchData" :prefix-icon="Search" />
         </div>
@@ -45,8 +47,8 @@
         <el-table-column prop="createdAt" label="发布时间" width="170" />
         <el-table-column label="操作" width="170" fixed="right" align="center">
           <template #default="{ row }">
-            <el-button v-if="row.status !== 2" type="warning" size="small" round @click="toggleStatus(row)">
-              {{ row.status === 1 ? '下架' : '上架' }}
+            <el-button v-if="row.status !== 3" type="warning" size="small" round @click="toggleStatus(row)">
+              {{ row.status === 2 ? '下架' : '上架' }}
             </el-button>
             <el-popconfirm title="确定删除该商品？" @confirm="handleDelete(row.id)">
               <template #reference>
@@ -88,8 +90,8 @@ const total = ref(0)
 const keyword = ref('')
 const filterStatus = ref(null)
 
-const statusLabel = (s) => ({ 0: '已下架', 1: '在售', 2: '已售' }[s] || '-')
-const statusType = (s) => ({ 0: 'info', 1: 'success', 2: 'warning' }[s] || 'info')
+const statusLabel = (s) => ({ 0: '草稿', 1: '审核中', 2: '在售', 3: '已售', 4: '已下架', 5: '审核失败', 6: '已删除' }[s] || '-')
+const statusType = (s) => ({ 0: 'info', 1: 'warning', 2: 'success', 3: 'warning', 4: 'info', 5: 'danger', 6: 'info' }[s] || 'info')
 
 const fetchData = async () => {
   loading.value = true
@@ -105,7 +107,7 @@ const fetchData = async () => {
 }
 
 const toggleStatus = async (row) => {
-  const newStatus = row.status === 1 ? 0 : 1
+  const newStatus = row.status === 2 ? 4 : 2
   await toggleGoodsStatus(row.id, newStatus)
   ElMessage.success('状态已更新')
   fetchData()
@@ -124,19 +126,19 @@ onMounted(fetchData)
 .admin-page { max-width: 1200px; }
 
 .page-top { margin-bottom: 20px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-.page-sub { font-size: 13px; color: #909399; margin: 0; }
+.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
+.page-sub { font-size: 13px; color: #8C8C8C; margin: 0; }
 
-.table-card { border-radius: 14px; overflow: hidden; }
+.table-card { border-radius: 16px; overflow: hidden; }
 
 .table-toolbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 0 0 16px;
 }
-.toolbar-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+.toolbar-title { font-size: 15px; font-weight: 600; color: #1A1A1A; }
 .toolbar-right { display: flex; gap: 10px; }
 
-.price-text { font-weight: 700; color: #f56c6c; }
+.price-text { font-weight: 700; color: #FF4D4F; }
 
 .table-footer { display: flex; justify-content: flex-end; padding: 20px 0 8px; }
 </style>

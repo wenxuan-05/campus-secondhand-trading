@@ -11,11 +11,16 @@
       <div class="table-toolbar">
         <div class="toolbar-title">订单列表</div>
         <el-select v-model="filterStatus" placeholder="全部状态" style="width:160px" clearable @change="fetchData" round>
-          <el-option label="待付款" :value="1" />
-          <el-option label="已付款" :value="2" />
-          <el-option label="待取货" :value="3" />
-          <el-option label="已完成" :value="4" />
-          <el-option label="已取消" :value="5" />
+          <el-option label="待付款" :value="10" />
+          <el-option label="待面交" :value="20" />
+          <el-option label="待发货" :value="25" />
+          <el-option label="待确认" :value="30" />
+          <el-option label="待评价" :value="40" />
+          <el-option label="已评价" :value="50" />
+          <el-option label="退款中" :value="60" />
+          <el-option label="退款纠纷" :value="70" />
+          <el-option label="已退款" :value="80" />
+          <el-option label="已取消" :value="90" />
         </el-select>
       </div>
 
@@ -70,8 +75,8 @@ import { ref, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { getOrders } from '../../api/order'
 
-const statusLabels = { 1: '待付款', 2: '已付款', 3: '待取货', 4: '已完成', 5: '已取消' }
-const statusTypes = { 1: 'warning', 2: 'info', 3: 'primary', 4: 'success', 5: 'danger' }
+const statusLabels = { 10: '待付款', 20: '待面交', 25: '待发货', 30: '待确认', 40: '待评价', 50: '已评价', 60: '退款中', 70: '退款纠纷', 80: '已退款', 90: '已取消', 100: '已关闭' }
+const statusTypes = { 10: 'warning', 20: 'info', 25: 'info', 30: '', 40: 'success', 50: 'success', 60: 'warning', 70: 'danger', 80: 'info', 90: 'danger', 100: 'info' }
 
 const tableData = ref([])
 const loading = ref(false)
@@ -103,20 +108,20 @@ onMounted(fetchData)
 .admin-page { max-width: 1200px; }
 
 .page-top { margin-bottom: 20px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-.page-sub { font-size: 13px; color: #909399; margin: 0; }
+.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
+.page-sub { font-size: 13px; color: #8C8C8C; margin: 0; }
 
-.table-card { border-radius: 14px; overflow: hidden; }
+.table-card { border-radius: 16px; overflow: hidden; }
 
 .table-toolbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 0 0 16px;
 }
-.toolbar-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+.toolbar-title { font-size: 15px; font-weight: 600; color: #1A1A1A; }
 
 .order-no { font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 13px; color: #606266; }
-.price-text { font-weight: 700; color: #f56c6c; }
-.pickup-code { font-weight: 700; color: #409eff; letter-spacing: 1px; }
+.price-text { font-weight: 700; color: #FF4D4F; }
+.pickup-code { font-weight: 700; color: #FFB800; letter-spacing: 1px; }
 
 .table-footer { display: flex; justify-content: flex-end; padding: 20px 0 8px; }
 </style>

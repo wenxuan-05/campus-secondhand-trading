@@ -1,0 +1,149 @@
+/* ============================================
+   闲鱼风格主题 — CSS 自定义属性
+   校园二手交易平台
+   ============================================ */
+
+:root {
+  /* ===== 主色调：暖琥珀色 ===== */
+  --color-primary: #FFB800;
+  --color-primary-dark: #FF9500;
+  --color-primary-light: #FFF7E6;
+  --color-primary-gradient: linear-gradient(135deg, #FFD000, #FF9500);
+
+  /* ===== 功能色 ===== */
+  --color-price: #FF4D4F;
+  --color-price-bg: #FFF1F0;
+  --color-success: #52C41A;
+  --color-warning: #FAAD14;
+  --color-danger: #FF4D4F;
+  --color-info: #8C8C8C;
+
+  /* ===== 文字色 ===== */
+  --text-primary: #1A1A1A;
+  --text-regular: #303133;
+  --text-secondary: #8C8C8C;
+  --text-muted: #BFBFBF;
+  --text-placeholder: #C0C4CC;
+
+  /* ===== 背景色 ===== */
+  --bg-page: #F5F6F8;
+  --bg-card: #FFFFFF;
+  --bg-light: #FAFBFC;
+  --bg-hover: #FFF7E6;
+
+  /* ===== 边框色 ===== */
+  --border-light: #F0F0F0;
+  --border-base: #E8E8E8;
+
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 12px 32px rgba(255, 152, 0, 0.10);
+  --shadow-primary: 0 4px 16px rgba(255, 152, 0, 0.30);
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* ===== 字体 ===== */
+  --font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Source Han Sans', 'Microsoft YaHei', sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 22px;
+  --font-size-3xl: 28px;
+
+  /* ===== 字重 ===== */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ===== 间距 ===== */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-base: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+}
+
+/* ============================================
+   Element Plus CSS 变量覆盖
+   ============================================ */
+
+:root {
+  /* 主色 */
+  --el-color-primary: #FFB800;
+  --el-color-primary-light-1: #FFC533;
+  --el-color-primary-light-2: #FFD266;
+  --el-color-primary-light-3: #FFDF99;
+  --el-color-primary-light-4: #FFE9B8;
+  --el-color-primary-light-5: #FFF0CF;
+  --el-color-primary-light-6: #FFF5DE;
+  --el-color-primary-light-7: #FFF8E8;
+  --el-color-primary-light-8: #FFFBEF;
+  --el-color-primary-light-9: #FFFDF5;
+  --el-color-primary-dark-1: #E6A600;
+  --el-color-primary-dark-2: #CC9300;
+
+  /* 成功色 */
+  --el-color-success: #52C41A;
+  --el-color-success-light-3: #95DE64;
+  --el-color-success-light-5: #D9F7BE;
+
+  /* 警告色 */
+  --el-color-warning: #FAAD14;
+  --el-color-warning-light-3: #FFD666;
+  --el-color-warning-light-5: #FFF1B8;
+
+  /* 危险色 */
+  --el-color-danger: #FF4D4F;
+  --el-color-danger-light-3: #FF9999;
+  --el-color-danger-light-5: #FFCCCC;
+
+  /* 信息色 */
+  --el-color-info: #8C8C8C;
+
+  /* 圆角 */
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 24px;
+  --el-border-radius-circle: 100%;
+
+  /* 边框 */
+  --el-border-color: #F0F0F0;
+  --el-border-color-light: #F0F0F0;
+  --el-border-color-lighter: #F5F5F5;
+
+  /* 文字 */
+  --el-text-color-primary: #1A1A1A;
+  --el-text-color-regular: #303133;
+  --el-text-color-secondary: #8C8C8C;
+  --el-text-color-placeholder: #BFBFBF;
+
+  /* 背景 */
+  --el-bg-color: #FFFFFF;
+  --el-bg-color-page: #F5F6F8;
+  --el-bg-color-overlay: #FFFFFF;
+  --el-fill-color-blank: #FFFFFF;
+  --el-fill-color-light: #FAFBFC;
+  --el-fill-color-lighter: #F5F6F8;
+
+  /* 阴影 */
+  --el-box-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --el-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-dark: 0 8px 28px rgba(0, 0, 0, 0.08);
+
+  /* 字体 */
+  --el-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Source Han Sans', 'Microsoft YaHei', sans-serif;
+}

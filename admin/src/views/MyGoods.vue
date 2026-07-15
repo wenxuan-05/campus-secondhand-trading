@@ -39,8 +39,9 @@
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="$router.push(`/publish/${row.id}`)" :disabled="row.status === 2" round>编辑</el-button>
-            <el-button v-if="row.status === 1" size="small" type="warning" @click="handleOff(row.id)" round>下架</el-button>
+            <el-button size="small" @click="$router.push(`/publish/${row.id}`)" :disabled="row.status === 3" round>编辑</el-button>
+            <el-button v-if="row.status === 2" size="small" type="warning" @click="handleOff(row.id)" round>下架</el-button>
+            <el-button v-if="row.status === 4" size="small" type="success" @click="handleOn(row.id)" round>上架</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -58,11 +59,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, PictureFilled } from '@element-plus/icons-vue'
 import { myGoods, offShelf } from '../api/goods'
+import request from '../utils/request'
 
 const list = ref([]); const loading = ref(false)
 const page = ref(1); const pageSize = ref(10); const total = ref(0)
 const failedImages = reactive(new Set())
-const statusMap = { 0: { text: '已下架', type: 'info' }, 1: { text: '在售', type: 'success' }, 2: { text: '已售', type: 'warning' } }
+const statusMap = { 0: { text: '草稿', type: 'info' }, 1: { text: '审核中', type: 'warning' }, 2: { text: '在售', type: 'success' }, 3: { text: '已售', type: 'warning' }, 4: { text: '已下架', type: 'info' }, 5: { text: '审核失败', type: 'danger' }, 6: { text: '已删除', type: 'info' } }
 const getFirstImage = (s) => { try { return JSON.parse(s)[0] || '' } catch { return '' } }
 
 const fetch = async () => {
@@ -78,6 +80,7 @@ const fetch = async () => {
   finally { loading.value = false }
 }
 const handleOff = async (id) => { await offShelf(id); ElMessage.success('已下架'); fetch() }
+const handleOn = async (id) => { await request.put(`/goods/${id}/on`); ElMessage.success('已上架'); fetch() }
 onMounted(fetch)
 </script>
 
@@ -85,20 +88,20 @@ onMounted(fetch)
 .my-goods { max-width: 1000px; margin: 0 auto; }
 
 .page-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
-.page-sub { font-size: 13px; color: #909399; margin: 0; }
+.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
+.page-sub { font-size: 13px; color: #8C8C8C; margin: 0; }
 
-.table-card { border-radius: 14px; overflow: hidden; }
+.table-card { border-radius: 16px; overflow: hidden; }
 
 .goods-cell { display: flex; gap: 12px; align-items: center; }
-.goods-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }
-.goods-thumb.placeholder { background: #f5f7fa; display: flex; align-items: center; justify-content: center; }
+.goods-thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; }
+.goods-thumb.placeholder { background: #F5F6F8; display: flex; align-items: center; justify-content: center; }
 .goods-cell-info { min-width: 0; }
-.goods-cell-title { cursor: pointer; color: #1a1a2e; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; transition: color 0.2s; }
-.goods-cell-title:hover { color: #409eff; }
-.goods-cell-date { font-size: 12px; color: #909399; }
+.goods-cell-title { cursor: pointer; color: #1A1A1A; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; transition: color 0.2s; }
+.goods-cell-title:hover { color: #FFB800; }
+.goods-cell-date { font-size: 12px; color: #8C8C8C; }
 
-.price-text { font-weight: 700; font-size: 15px; color: #f56c6c; }
+.price-text { font-weight: 700; font-size: 15px; color: #FF4D4F; }
 
 .table-footer { display: flex; justify-content: center; padding: 20px 0 8px; }
 </style>

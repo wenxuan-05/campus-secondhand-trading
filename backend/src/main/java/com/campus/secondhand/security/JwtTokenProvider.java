@@ -22,14 +22,13 @@ public class JwtTokenProvider {
         this.expiration = expiration;
     }
 
-    public String generateToken(Long userId, String studentId, String role) {
+    public String generateToken(Long userId, String studentId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("studentId", studentId)
-                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)
@@ -43,10 +42,6 @@ public class JwtTokenProvider {
 
     public String getStudentId(String token) {
         return parseClaims(token).get("studentId", String.class);
-    }
-
-    public String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
     }
 
     public boolean validateToken(String token) {
