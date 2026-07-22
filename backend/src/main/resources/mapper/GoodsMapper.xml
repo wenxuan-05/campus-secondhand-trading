@@ -25,6 +25,16 @@
             <when test="query.sortBy == 'price_asc'">ORDER BY price ASC</when>
             <when test="query.sortBy == 'price_desc'">ORDER BY price DESC</when>
             <when test="query.sortBy == 'view_desc'">ORDER BY view_count DESC</when>
+            <when test="query.sortBy == 'location_desc' and query.dormitory != null and query.dormitory != ''">
+                ORDER BY
+                    CASE
+                        WHEN JSON_VALUE(location, '$.building') = #{query.dormitory} THEN 0
+                        WHEN JSON_VALUE(location, '$.building') LIKE '%' + LEFT(#{query.dormitory}, 2) + '%'
+                             OR JSON_VALUE(location, '$.name') LIKE '%' + LEFT(#{query.dormitory}, 2) + '%' THEN 1
+                        ELSE 2
+                    END,
+                    created_at DESC
+            </when>
             <otherwise>ORDER BY created_at DESC</otherwise>
         </choose>
     </select>

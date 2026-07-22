@@ -3,6 +3,7 @@ package com.campus.secondhand.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.campus.secondhand.entity.Favorite;
+import com.campus.secondhand.dto.FavoriteVO;
 
 public interface FavoriteService extends IService<Favorite> {
     /** Add a favorite, increments goods.collect_count */
@@ -11,6 +12,6 @@ public interface FavoriteService extends IService<Favorite> {
     void removeFavorite(Long userId, Long goodsId);
     /** Check if user has favorited this goods */
     boolean isFavorited(Long userId, Long goodsId);
-    /** Get user's favorite list with pagination */
-    Page<Favorite> myFavorites(Long userId, int page, int pageSize);
+    /** Get user's favorite list with goods info, paginated */
+    Page<FavoriteVO> myFavorites(Long userId, int page, int pageSize);
 }

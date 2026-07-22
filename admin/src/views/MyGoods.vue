@@ -19,7 +19,7 @@
               </div>
               <div class="goods-cell-info">
                 <div class="goods-cell-title" @click="$router.push(`/goods/${row.id}`)">{{ row.title }}</div>
-                <span class="goods-cell-date">{{ row.createdAt?.slice(0, 10) }}</span>
+                <span class="goods-cell-date">{{ formatTime(row.createdAt) }}</span>
               </div>
             </div>
           </template>
@@ -60,6 +60,7 @@ import { ElMessage } from 'element-plus'
 import { Plus, PictureFilled } from '@element-plus/icons-vue'
 import { myGoods, offShelf } from '../api/goods'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const list = ref([]); const loading = ref(false)
 const page = ref(1); const pageSize = ref(10); const total = ref(0)
@@ -87,21 +88,29 @@ onMounted(fetch)
 <style scoped>
 .my-goods { max-width: 1000px; margin: 0 auto; }
 
-.page-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
-.page-sub { font-size: 13px; color: #8C8C8C; margin: 0; }
+.page-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+.page-title { font-size: 24px; font-weight: 800; color: #5D4037; margin: 0 0 4px; }
+.page-sub { font-size: 14px; color: #8D6E63; margin: 0; font-weight: 600; }
 
-.table-card { border-radius: 16px; overflow: hidden; }
+.table-card {
+  border-radius: 26px; overflow: hidden;
+  border: 2.5px solid #FFE082;
+  box-shadow: 4px 4px 0 rgba(93,64,55,0.08);
+}
 
 .goods-cell { display: flex; gap: 12px; align-items: center; }
-.goods-thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; }
-.goods-thumb.placeholder { background: #F5F6F8; display: flex; align-items: center; justify-content: center; }
+.goods-thumb { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; }
+.goods-thumb.placeholder { background: #FFF8DC; display: flex; align-items: center; justify-content: center; }
 .goods-cell-info { min-width: 0; }
-.goods-cell-title { cursor: pointer; color: #1A1A1A; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; transition: color 0.2s; }
-.goods-cell-title:hover { color: #FFB800; }
-.goods-cell-date { font-size: 12px; color: #8C8C8C; }
+.goods-cell-title {
+  cursor: pointer; color: #3E2723; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 200px; transition: color 0.2s;
+}
+.goods-cell-title:hover { color: #FF9F43; }
+.goods-cell-date { font-size: 12px; color: #8D6E63; }
 
-.price-text { font-weight: 700; font-size: 15px; color: #FF4D4F; }
+.price-text { font-weight: 800; font-size: 15px; color: #FF6B6B; }
 
 .table-footer { display: flex; justify-content: center; padding: 20px 0 8px; }
 </style>

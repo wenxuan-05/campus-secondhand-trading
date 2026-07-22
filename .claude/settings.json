@@ -43,7 +43,11 @@
       "Bash(\"/c/Program Files/Java/jdk-21/bin/java\" -jar E:/campus-secondhand-trading/backend/target/campus-secondhand-1.0.0.jar --server.port=8080)",
       "Bash(sqlcmd -S localhost -U sa -P 20051015 -d campus_secondhand -C -Q \"SELECT id, order_id, reviewer_id, reviewee_id, rating, content, review_type FROM reviews\")",
       "Bash(sqlcmd -S localhost -U sa -P 20051015 -d campus_secondhand -C -Q \"SELECT id, order_no, buyer_id, seller_id, goods_id, status FROM orders\")",
-      "Bash(\"/c/Program Files/Java/jdk-21/bin/java\" -jar E:/campus-secondhand-trading/backend/target/campus-secondhand-1.0.0.jar --server.port=8088)"
+      "Bash(\"/c/Program Files/Java/jdk-21/bin/java\" -jar E:/campus-secondhand-trading/backend/target/campus-secondhand-1.0.0.jar --server.port=8088)",
+      "Bash(cmd /c mvnw.cmd compile -q -DskipTests)",
+      "Bash(cmd /c \"mvnw.cmd compile -q -DskipTests 2>&1\")",
+      "Bash(sqlcmd -S localhost,1433 -U sa -P 20051015 -d campus_secondhand -Q \"IF NOT EXISTS \\(SELECT * FROM sys.columns WHERE object_id = OBJECT_ID\\('chat_messages'\\) AND name = 'extra_data'\\) ALTER TABLE chat_messages ADD extra_data NVARCHAR\\(MAX\\) DEFAULT NULL; PRINT 'Column added successfully.'\")",
+      "Bash(sqlcmd -S localhost,1433 -U sa -P 20051015 -d campus_secondhand -C -Q \"IF NOT EXISTS \\(SELECT * FROM sys.columns WHERE object_id = OBJECT_ID\\('chat_messages'\\) AND name = 'extra_data'\\) ALTER TABLE chat_messages ADD extra_data NVARCHAR\\(MAX\\) DEFAULT NULL; PRINT 'Column added successfully.'\")"
     ]
   }
 }

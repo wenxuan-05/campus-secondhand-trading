@@ -44,7 +44,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="发布时间" width="170" />
+        <el-table-column prop="createdAt" label="发布时间" width="170" :formatter="formatTimeColumn" />
         <el-table-column label="操作" width="170" fixed="right" align="center">
           <template #default="{ row }">
             <el-button v-if="row.status !== 3" type="warning" size="small" round @click="toggleStatus(row)">
@@ -79,6 +79,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { getGoods, deleteGoods, toggleGoodsStatus } from '../../api/goods'
+import { formatTimeColumn } from '../../utils/format'
 
 const conditionLabels = { 1: '全新', 2: '几乎全新', 3: '良好', 4: '一般', 5: '较差' }
 

@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.campus.secondhand.common.BusinessException;
 import com.campus.secondhand.dto.GoodsDTO;
+import com.campus.secondhand.security.UserContext;
 import com.campus.secondhand.dto.GoodsQueryDTO;
 import com.campus.secondhand.entity.Goods;
 import com.campus.secondhand.entity.User;
 import com.campus.secondhand.mapper.GoodsMapper;
 import com.campus.secondhand.mapper.UserMapper;
 import com.campus.secondhand.service.GoodsService;
+import com.campus.secondhand.service.RecommendService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,6 +30,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     private final ObjectMapper objectMapper;
     private final UserMapper userMapper;
+    private final RecommendService recommendService;
 
     private static final int DAILY_PUBLISH_LIMIT = 10;
     private static final int MAX_ON_SALE = 50;
@@ -61,7 +65,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
         Goods goods = buildGoods(dto);
         goods.setUserId(userId);
-        goods.setStatus(2); // 在售（跳过审核中状态）
+        goods.setStatus(1); // 审核中（需校园大使/管理员审核通过后上架）
         goods.setViewCount(0);
         goods.setCollectCount(0);
         goods.setChatCount(0);
@@ -117,7 +121,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
             throw new BusinessException("每日刷新已达上限（" + DAILY_REFRESH_LIMIT + "次）");
         }
 
-        goods.setStatus(2); // 在售
+        goods.setStatus(1); // 审核中（重新上架需重新审核）
         goods.setRefreshTime(LocalDateTime.now());
         goods.setExpireTime(LocalDateTime.now().plusDays(30));
         updateById(goods);
@@ -162,13 +166,62 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         // Increment view count
         goods.setViewCount(goods.getViewCount() + 1);
         updateById(goods);
+        // 记录浏览行为（用于推荐算法）
+        Long currentUserId;
+        try {
+            currentUserId = UserContext.getUserId();
+        } catch (Exception e) {
+            currentUserId = null;
+        }
+        if (currentUserId != null) {
+            recommendService.logBehavior(currentUserId, id, 1);
+        }
         return goods;
     }
 
     @Override
     public Page<Goods> search(GoodsQueryDTO query) {
-        Page<Goods> page = new Page<>(query.getPage(), query.getPageSize());
-        return baseMapper.selectGoodsPage(page, query);
+        Long userId = null;
+        // Pass current user's dormitory for location-based sorting
+        try {
+            userId = UserContext.getUserId();
+            if (userId != null && query.getDormitory() == null) {
+                User user = userMapper.selectById(userId);
+                if (user != null && user.getDormitory() != null && !user.getDormitory().isEmpty()) {
+                    query.setDormitory(user.getDormitory());
+                }
+            }
+        } catch (Exception ignored) {
+            // User not logged in — no location boost
+        }
+
+        // 个性化排序：取更大的候选集，在内存中重排
+        boolean isPersonalized = "personalized".equals(query.getSortBy());
+        int fetchSize = isPersonalized ? Math.max(query.getPageSize(), 60) : query.getPageSize();
+        Page<Goods> page = new Page<>(query.getPage(), fetchSize);
+
+        // 个性化模式下用默认排序先取候选
+        String originalSort = query.getSortBy();
+        if (isPersonalized) {
+            query.setSortBy(null); // 用默认 created_at DESC
+        }
+
+        Page<Goods> result = baseMapper.selectGoodsPage(page, query);
+
+        if (isPersonalized && !result.getRecords().isEmpty()) {
+            query.setSortBy(originalSort);
+            List<Goods> reRanked = recommendService.reRankPersonalized(userId, result.getRecords());
+            // 截取当前页
+            int start = (query.getPage() - 1) * query.getPageSize();
+            int end = Math.min(start + query.getPageSize(), reRanked.size());
+            if (start < reRanked.size()) {
+                result.setRecords(reRanked.subList(start, end));
+            } else {
+                result.setRecords(Collections.emptyList());
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -189,6 +242,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
         goods.setOriginalPrice(dto.getOriginalPrice());
         goods.setConditionLevel(dto.getConditionLevel() != null ? dto.getConditionLevel() : 3);
         goods.setCategory(dto.getCategory() != null ? dto.getCategory() : "other");
+        goods.setLocation(dto.getLocation() != null ? dto.getLocation() : "");
         try {
             List<String> images = dto.getImages();
             goods.setImages(images != null ? objectMapper.writeValueAsString(images) : "[]");

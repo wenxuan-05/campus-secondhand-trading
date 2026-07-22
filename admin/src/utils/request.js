@@ -32,7 +32,7 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       const store = useUserStore()
       store.logout()
-      router.push('/login')
+      router.push('/home')
       ElMessage.error('登录已过期，请重新登录')
     } else {
       ElMessage.error(error.message || '网络错误')

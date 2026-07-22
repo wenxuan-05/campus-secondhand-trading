@@ -3,6 +3,7 @@ package com.campus.secondhand.config;
 import com.campus.secondhand.service.OrderService;
 import com.campus.secondhand.service.ReviewService;
 import com.campus.secondhand.service.RefundService;
+import com.campus.secondhand.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ public class SchedulingConfig {
     private final ReviewService reviewService;
     private final RefundService refundService;
     private final OrderService orderService;
+    private final UserService userService;
 
     /** Daily at 2 AM: auto 5-star review for orders completed >7 days ago */
     @Scheduled(cron = "0 0 2 * * ?")
@@ -61,6 +63,15 @@ public class SchedulingConfig {
         int count = orderService.autoOffShelfExpiredGoods();
         if (count > 0) {
             log.info("Auto-off-shelf {} expired good(s)", count);
+        }
+    }
+
+    /** Every hour: unban users whose ban period (7 days) has expired */
+    @Scheduled(cron = "0 30 * * * ?")
+    public void autoUnbanExpiredUsers() {
+        int count = userService.unbanExpiredUsers();
+        if (count > 0) {
+            log.info("Unbanned {} user(s) with expired bans", count);
         }
     }
 }

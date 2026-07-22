@@ -36,8 +36,8 @@
         <!-- 订单主体 -->
         <div class="order-body">
           <div class="order-body-left">
-            <span class="order-label">商品 ID</span>
-            <span class="order-value">{{ o.goodsId }}</span>
+            <span class="order-label">商品</span>
+            <span class="order-value" style="cursor:pointer;color:#FF9F43;text-decoration:underline" @click="$router.push(`/goods/${o.goodsId}`)">{{ goodsNames[o.goodsId] || '加载中...' }}</span>
           </div>
           <div class="order-body-right">
             <span class="order-price-symbol">¥</span>
@@ -89,15 +89,18 @@
             </el-button>
             <el-button v-if="o.status < 40" size="small" round @click="handleCancel(o.id)">取消</el-button>
           </template>
-          <template v-if="tab === 'seller'">
-            <el-button v-if="o.status === 20" type="primary" size="small" round @click="handleGenCode(o.id)">
-              🔑 生成取货码
-            </el-button>
-            <template v-if="o.status === 20 && o.pickupCode">
-              <span class="pickup-code-badge">
+          <!-- 取货码：卖家生成；买家输入验证 -->
+          <template v-if="o.status === 20">
+            <template v-if="tab === 'seller'">
+              <el-button v-if="!o.pickupCode" type="primary" size="small" round @click="handleGenCode(o.id)">
+                🔑 生成取货码
+              </el-button>
+              <span v-if="o.pickupCode" class="pickup-code-badge">
                 取货码 <strong>{{ o.pickupCode }}</strong>
               </span>
-              <el-button type="success" size="small" round @click="showVerifyDialog(o.id)">核验取货</el-button>
+            </template>
+            <template v-if="tab === 'buyer' && o.pickupCode">
+              <el-button type="success" size="small" round @click="showVerifyDialog(o.id)">🔐 验证取货</el-button>
             </template>
           </template>
         </div>
@@ -116,7 +119,7 @@
           </template>
         </div>
 
-        <div class="order-time">{{ o.createdAt?.slice(0, 16) }}</div>
+        <div class="order-time">{{ formatTime(o.createdAt) }}</div>
       </el-card>
 
       <el-empty v-if="!loading && list.length === 0" description="暂无订单">
@@ -124,15 +127,42 @@
       </el-empty>
     </div>
 
-    <!-- 核验弹窗 -->
-    <el-dialog v-model="verifyVisible" title="🔐 核验取货码" width="380px">
+    <!-- ====== 猜你喜欢 ====== -->
+    <div v-if="recList.length > 0" class="order-rec-section">
+      <div class="order-rec-header">
+        <span class="order-rec-title">🎯 猜你喜欢</span>
+      </div>
+      <div class="order-rec-scroll">
+        <div
+          v-for="item in recList"
+          :key="'rec-' + item.goods.id"
+          class="order-rec-card"
+          @click="$router.push('/goods/' + item.goods.id)"
+        >
+          <div class="order-rec-img">
+            <img v-if="getFirstImg(item.goods)" :src="getFirstImg(item.goods)" alt="" />
+            <div v-else class="order-rec-img-empty">
+              <el-icon :size="22"><PictureFilled /></el-icon>
+            </div>
+            <span class="order-rec-tag">{{ item.reason }}</span>
+          </div>
+          <div class="order-rec-body">
+            <h4 class="order-rec-card-title">{{ item.goods.title }}</h4>
+            <span class="order-rec-price">¥{{ item.goods.price }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 核验弹窗（买家输入取货码确认面交） -->
+    <el-dialog v-model="verifyVisible" title="🔐 验证取货码" width="380px">
       <div class="verify-content">
-        <p class="verify-desc">请输入买家出示的6位取货码</p>
-        <el-input v-model="verifyCode" placeholder="输入取货码" maxlength="6" size="large" class="verify-input" />
+        <p class="verify-desc">请输入卖家提供的6位取货码，确认已取到商品</p>
+        <el-input v-model="verifyCode" placeholder="输入6位取货码" maxlength="6" size="large" class="verify-input" />
       </div>
       <template #footer>
         <el-button @click="verifyVisible = false" round>取消</el-button>
-        <el-button type="primary" @click="doVerify" round>确认核验</el-button>
+        <el-button type="success" @click="doVerify" :loading="verifying" round>确认取货</el-button>
       </template>
     </el-dialog>
 
@@ -174,17 +204,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ShoppingCartFull, Sell } from '@element-plus/icons-vue'
+import { ShoppingCartFull, Sell, PictureFilled } from '@element-plus/icons-vue'
 import { buyerOrders, sellerOrders, payOrder, confirmReceive, cancelOrder, getPickupCode, verifyPickup, applyRefund } from '../api/order'
 import { submitReview } from '../api/review'
+import { getDetail, getRecommend } from '../api/goods'
+import { formatTime } from '../utils/format'
 
 const tab = ref('buyer'); const list = ref([]); const loading = ref(false)
 const verifyVisible = ref(false); const verifyCode = ref(''); const currentOrderId = ref(null)
+const verifying = ref(false)
+const pickupCodes = ref({})  // 本地缓存已生成的取货码: { [orderId]: code }
+const goodsNames = ref({})   // 商品名称缓存: { [goodsId]: title }
 const refundVisible = ref(false); const refundReason = ref(''); const refundOrderId = ref(null)
 const reviewVisible = ref(false); const reviewRating = ref(5); const reviewTags = ref([])
 const reviewContent = ref(''); const reviewOrderId = ref(null); const reviewType = ref(1)
+const recList = ref([])
 
 const statusMap = {
   10: { text: '待付款', type: 'warning' },
@@ -206,6 +242,16 @@ const fetch = async () => {
     const fn = tab.value === 'buyer' ? buyerOrders : sellerOrders
     const r = await fn({ page: 1, pageSize: 50 })
     list.value = r.data.records
+    // 批量加载商品名称
+    const ids = [...new Set(list.value.map(o => o.goodsId).filter(Boolean))]
+    await Promise.all(ids.map(async (gid) => {
+      if (!goodsNames.value[gid]) {
+        try {
+          const gr = await getDetail(gid)
+          goodsNames.value[gid] = gr.data?.title || `商品 #${gid}`
+        } catch { goodsNames.value[gid] = `商品 #${gid}` }
+      }
+    }))
   } catch {}
   finally { loading.value = false }
 }
@@ -215,7 +261,21 @@ const handleConfirm = async (id) => { await confirmReceive(id); ElMessage.succes
 const handleCancel = async (id) => { await cancelOrder(id); ElMessage.success('已取消'); fetch() }
 const handleGenCode = async (id) => { const r = await getPickupCode(id); ElMessage.success('取货码：' + r.data.pickupCode); fetch() }
 const showVerifyDialog = (id) => { currentOrderId.value = id; verifyCode.value = ''; verifyVisible.value = true }
-const doVerify = async () => { await verifyPickup(currentOrderId.value, verifyCode.value); ElMessage.success('核验成功，交易完成'); verifyVisible.value = false; fetch() }
+const doVerify = async () => {
+  if (!verifyCode.value.trim() || verifyCode.value.length !== 6) {
+    ElMessage.warning('请输入6位取货码'); return
+  }
+  verifying.value = true
+  try {
+    await verifyPickup(currentOrderId.value, verifyCode.value)
+    ElMessage.success('取货验证成功！请确认收货 🎉')
+    verifyVisible.value = false
+    fetch()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.message || '取货码错误，请重试')
+  }
+  finally { verifying.value = false }
+}
 
 // Refund
 const showRefundDialog = (id) => { refundOrderId.value = id; refundReason.value = ''; refundVisible.value = true }
@@ -252,44 +312,106 @@ const doReview = async () => {
   } catch { ElMessage.error('评价失败') }
 }
 
-fetch()
+const fetchRec = async () => {
+  try {
+    const r = await getRecommend({ limit: 8 })
+    recList.value = r.data || []
+  } catch {}
+}
+
+const getFirstImg = (g) => {
+  try { const arr = JSON.parse(g.images || '[]'); return arr[0] || '' } catch { return '' }
+}
+
+onMounted(() => { fetch(); fetchRec() })
 </script>
 
 <style scoped>
 .my-orders { max-width: 800px; margin: 0 auto; padding-bottom: 40px; }
-.page-top { margin-bottom: 16px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0; }
+.page-top { margin-bottom: 20px; }
+.page-title { font-size: 24px; font-weight: 800; color: #5D4037; margin: 0; }
 .order-tabs { margin-bottom: 16px; }
-.tab-label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.tab-label { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
 .order-list { min-height: 200px; }
-.order-card { margin-bottom: 14px; border-radius: 16px; transition: all 0.25s; }
-.order-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.06); }
+.order-card { margin-bottom: 16px; border-radius: 26px; border: 2.5px solid #FFE082; transition: all 0.25s; box-shadow: 3px 3px 0 rgba(93,64,55,0.06); }
+.order-card:hover { border-color: #5D4037; box-shadow: 6px 6px 0 rgba(93,64,55,0.1); }
 .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .order-header-left { display: flex; align-items: center; gap: 10px; }
-.order-no-text { font-size: 13px; color: #8C8C8C; font-family: monospace; letter-spacing: 0.5px; }
-.order-body { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 14px 18px; background: #FAFBFC; border-radius: 12px; }
+.order-no-text { font-size: 13px; color: #8D6E63; font-family: monospace; letter-spacing: 0.5px; }
+.order-body { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding: 14px 18px; background: #FFF8DC; border-radius: 16px; border: 1.5px solid #FFE082; }
 .order-body-left { display: flex; align-items: center; gap: 8px; }
-.order-label { font-size: 13px; color: #8C8C8C; }
-.order-value { font-weight: 600; color: #303133; }
+.order-label { font-size: 13px; color: #8D6E63; }
+.order-value { font-weight: 700; color: #3E2723; }
 .order-body-right { display: flex; align-items: baseline; }
-.order-price-symbol { font-size: 16px; font-weight: 600; color: #FF4D4F; margin-right: 2px; }
-.order-price { font-size: 26px; font-weight: 800; color: #FF4D4F; }
+.order-price-symbol { font-size: 16px; font-weight: 700; color: #FF6B6B; margin-right: 2px; }
+.order-price { font-size: 26px; font-weight: 900; color: #FF6B6B; }
 .order-progress { margin-bottom: 14px; padding: 0 8px; }
 .progress-steps { display: flex; align-items: center; justify-content: space-between; }
-.step { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #BFBFBF; min-width: 36px; }
-.step.done { color: #FFB800; }
-.step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: #ebeef5; color: #8C8C8C; transition: all 0.3s; }
-.step.done .step-dot { background: linear-gradient(135deg, #FFD000, #FF9500); color: #fff; }
-.step-line { flex: 1; height: 2px; background: #ebeef5; transition: background 0.3s; margin: 0 4px 18px; }
-.step-line.done { background: #FFB800; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #BCAAA4; min-width: 36px; }
+.step.done { color: #FF9F43; }
+.step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; background: #FFF8DC; color: #8D6E63; transition: all 0.3s; border: 2px solid #FFE082; }
+.step.done .step-dot { background: linear-gradient(135deg, #FFD000, #FF9500); color: #fff; border-color: #5D4037; }
+.step-line { flex: 1; height: 2px; background: #FFE082; transition: background 0.3s; margin: 0 4px 18px; }
+.step-line.done { background: #FF9F43; }
 .order-actions { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
-.pickup-code-badge { font-size: 14px; color: #FFB800; background: #FFF7E6; padding: 6px 14px; border-radius: 20px; }
+.pickup-code-badge { font-size: 14px; color: #5D4037; background: #FFE66D; padding: 6px 14px; border-radius: 20px; border: 2px solid #5D4037; font-weight: 700; }
 .pickup-code-badge strong { font-size: 18px; letter-spacing: 4px; margin-left: 4px; }
-.order-time { font-size: 12px; color: #BFBFBF; }
+.order-time { font-size: 12px; color: #8D6E63; }
 .verify-content { text-align: center; }
 .verify-desc { font-size: 14px; color: #606266; margin: 0 0 16px; }
 .verify-input :deep(.el-input__inner) { text-align: center; font-size: 22px; letter-spacing: 8px; font-weight: 700; }
 .review-content { }
 .review-rating { display: flex; align-items: center; gap: 12px; }
 .review-label { font-size: 14px; font-weight: 600; color: #303133; min-width: 40px; }
+
+/* ===== 猜你喜欢 ===== */
+.order-rec-section {
+  margin-top: 32px; padding: 20px 24px;
+  background: #FFFDF7; border-radius: 20px;
+  border: 1.5px solid #FFE082; overflow: hidden;
+}
+.order-rec-header { margin-bottom: 14px; }
+.order-rec-title { font-size: 17px; font-weight: 700; color: #3E2723; }
+.order-rec-scroll {
+  display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden;
+  padding-bottom: 8px; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: rgba(249,168,38,0.2) transparent;
+}
+.order-rec-card {
+  flex: 0 0 160px; width: 160px; cursor: pointer;
+  background: #fff; border-radius: 14px; overflow: hidden;
+  border: 1.5px solid #FFE082;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.order-rec-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255,168,0,0.15);
+  border-color: #FFB800;
+}
+.order-rec-img {
+  height: 130px; position: relative; background: #FFF9E6;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; pointer-events: none;
+}
+.order-rec-img img { width: 100%; height: 100%; object-fit: cover; }
+.order-rec-img-empty { color: #D4A017; }
+.order-rec-tag {
+  position: absolute; bottom: 6px; left: 6px; right: 6px;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 600; text-align: center;
+  background: rgba(255,255,255,0.9); color: #8D6E63;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
+.order-rec-body { padding: 10px 12px 12px; pointer-events: none; }
+.order-rec-card-title {
+  font-size: 13px; font-weight: 600; color: #1A1A1A; margin: 0 0 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.order-rec-price {
+  font-size: 16px; font-weight: 800; color: #FF4D4F;
+}
 </style>

@@ -22,6 +22,38 @@ public class FileController {
     }
 
     /**
+     * Upload user avatar image.
+     */
+    @PostMapping("/upload/avatar")
+    public Result<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        return Result.ok(fileService.upload(file, "avatars"));
+    }
+
+    /**
+     * Proxy avatar images through the backend.
+     */
+    @GetMapping("/avatars/{objectName}")
+    public ResponseEntity<Resource> getAvatar(@PathVariable String objectName) {
+        Resource resource = fileService.getImage("avatars/" + objectName);
+        MediaType mediaType = guessContentType(objectName);
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(resource);
+    }
+
+    /**
+     * Proxy chat images through the backend.
+     */
+    @GetMapping("/chat/{objectName}")
+    public ResponseEntity<Resource> getChatImage(@PathVariable String objectName) {
+        Resource resource = fileService.getImage("chat/" + objectName);
+        MediaType mediaType = guessContentType(objectName);
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(resource);
+    }
+
+    /**
      * Proxy images from MinIO through the backend.
      * This avoids exposing MinIO URLs directly and works through the Vite dev proxy.
      */

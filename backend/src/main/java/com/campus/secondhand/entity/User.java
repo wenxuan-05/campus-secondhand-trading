@@ -26,8 +26,12 @@ public class User {
     private java.math.BigDecimal goodRate; // 好评率
     private LocalDateTime lastLoginTime;// 最后登录时间
     private Integer status;             // 0=disabled, 1=active, 2=限制发布
-    private Integer isCampusAmbassador; // 0=否, 1=校园大使
-    private Integer isMerchant;         // 0=否, 1=商家
+    private LocalDateTime banExpireTime; // 封禁到期时间（信用分<60时自动封禁7天）
+    private String role;                // 角色：ADMIN, CAMPUS_AMBASSADOR, USER
+    private String workerId;            // 工号（校园大使专用，管理员手动分配）
+    private Integer isCampusAmbassador; // 0=否, 1=校园大使（已废弃，请使用role字段）
+    private Integer isMerchant;         // 0=否, 1=商家（已废弃，请使用role字段）
+    private Integer tokenVersion;       // Token版本号，密码重置后+1，用于使旧Token失效
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
     @TableField(fill = FieldFill.INSERT_UPDATE)

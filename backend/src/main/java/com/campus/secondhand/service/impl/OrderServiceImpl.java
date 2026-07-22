@@ -9,6 +9,7 @@ import com.campus.secondhand.entity.Order;
 import com.campus.secondhand.mapper.GoodsMapper;
 import com.campus.secondhand.mapper.OrderMapper;
 import com.campus.secondhand.service.OrderService;
+import com.campus.secondhand.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
 
     private final GoodsMapper goodsMapper;
+    private final RecommendService recommendService;
 
     /**
      * Status codes (aligned with PDF 4.2.2):
@@ -50,6 +52,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setStatus(10); // 待付款
         order.setRemark(remark != null ? remark : "");
         save(order);
+
+        // 记录购买行为（用于推荐算法）
+        recommendService.logBehavior(buyerId, goodsId, 3);
+
         return order;
     }
 
@@ -69,6 +75,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     }
 
     @Override
+    @Transactional
     public String generatePickupCode(Long orderId, Long sellerId) {
         Order order = getById(orderId);
         if (order == null) throw new BusinessException("订单不存在");
@@ -96,10 +103,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     @Transactional
-    public Order verifyPickup(Long orderId, Long sellerId, String code) {
+    public Order verifyPickup(Long orderId, Long buyerId, String code) {
         Order order = getById(orderId);
         if (order == null) throw new BusinessException("订单不存在");
-        if (!order.getSellerId().equals(sellerId)) throw new BusinessException("无权操作");
+        if (!order.getBuyerId().equals(buyerId)) throw new BusinessException("无权操作");
         if (order.getStatus() != 20) throw new BusinessException("订单状态异常");
         if (order.getPickupCode() == null || !order.getPickupCode().equals(code)) {
             throw new BusinessException("取货码不匹配");

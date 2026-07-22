@@ -33,7 +33,11 @@
     <el-container class="admin-right">
       <el-header class="admin-header">
         <div class="header-left">
-          <span class="header-greeting">👋 你好，{{ store.userInfo?.nickname || '管理员' }}</span>
+          <span class="header-greeting">
+            👋 你好，{{ store.userInfo?.nickname || '用户' }}
+            <template v-if="store.isAdmin">（管理员）</template>
+            <template v-else-if="store.isAmbassador">（校园大使 · 工号{{ store.workerId }}）</template>
+          </span>
         </div>
         <div class="header-right">
           <router-link to="/home" class="header-home-link">
@@ -51,20 +55,44 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { DataAnalysis, UserFilled, Goods, Document, ShoppingCartFull } from '@element-plus/icons-vue'
+import { DataAnalysis, UserFilled, Goods, Document, ShoppingCartFull, Checked, TrendCharts, WarningFilled } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const store = useUserStore()
 
-const menuItems = [
-  { index: '/admin/dashboard', label: '控制台', icon: DataAnalysis },
-  { index: '/admin/users', label: '用户管理', icon: UserFilled },
-  { index: '/admin/goods', label: '商品管理', icon: Goods },
-  { index: '/admin/orders', label: '订单管理', icon: Document },
-]
+const menuItems = computed(() => {
+  const items = [
+    { index: '/admin/dashboard', label: '控制台', icon: DataAnalysis },
+  ]
+  // 用户管理仅管理员可见
+  if (store.isAdmin) {
+    items.push({ index: '/admin/users', label: '用户管理', icon: UserFilled })
+  }
+  // 商品管理和订单管理：管理员和校园大使都可见
+  items.push(
+    { index: '/admin/goods', label: '商品管理', icon: Goods },
+    { index: '/admin/orders', label: '订单管理', icon: Document },
+  )
+  // 商品审核和推广统计：校园大使（管理员也能看）
+  if (store.isAmbassador || store.isAdmin) {
+    items.push(
+      { index: '/admin/review', label: '商品审核', icon: Checked },
+      { index: '/admin/promotion-stats', label: '推广统计', icon: TrendCharts },
+    )
+  }
+  // 举报管理：管理员可见
+  if (store.isAdmin) {
+    items.push(
+      { index: '/admin/ambassador-applications', label: '大使申请审核', icon: Checked },
+      { index: '/admin/reports', label: '举报管理', icon: WarningFilled }
+    )
+  }
+  return items
+})
 
 const handleLogout = () => { store.logout(); router.push('/login') }
 </script>

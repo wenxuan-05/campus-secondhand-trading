@@ -1,56 +1,67 @@
 /* ============================================
-   闲鱼风格主题 — CSS 自定义属性
+   淘鸭风格主题 — CSS 自定义属性
    校园二手交易平台
    ============================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
 :root {
-  /* ===== 主色调：暖琥珀色 ===== */
-  --color-primary: #FFB800;
+  /* ===== 主色调：鸭黄系 ===== */
+  --color-primary: #FFD000;
   --color-primary-dark: #FF9500;
-  --color-primary-light: #FFF7E6;
-  --color-primary-gradient: linear-gradient(135deg, #FFD000, #FF9500);
+  --color-primary-light: #FFF8DC;
+  --color-primary-gradient: linear-gradient(135deg, #FFE66D, #FFB800);
+  --color-duck-yellow: #FFE66D;
+  --color-cream: #FFF8DC;
+  --color-mint: #A8E6CF;
+  --color-pink: #FFD3B6;
+  --color-sky: #A8D8EA;
+  --color-watermelon: #FF6B6B;
+  --color-orange: #FF9F43;
+  --color-brown: #5D4037;
 
   /* ===== 功能色 ===== */
-  --color-price: #FF4D4F;
+  --color-price: #FF6B6B;
   --color-price-bg: #FFF1F0;
   --color-success: #52C41A;
-  --color-warning: #FAAD14;
-  --color-danger: #FF4D4F;
+  --color-warning: #FF9F43;
+  --color-danger: #FF6B6B;
   --color-info: #8C8C8C;
 
   /* ===== 文字色 ===== */
-  --text-primary: #1A1A1A;
-  --text-regular: #303133;
-  --text-secondary: #8C8C8C;
-  --text-muted: #BFBFBF;
-  --text-placeholder: #C0C4CC;
+  --text-primary: #3E2723;
+  --text-regular: #4E342E;
+  --text-secondary: #8D6E63;
+  --text-muted: #BCAAA4;
+  --text-placeholder: #D7CCC8;
 
   /* ===== 背景色 ===== */
-  --bg-page: #F5F6F8;
+  --bg-page: #FFF8DC;
   --bg-card: #FFFFFF;
-  --bg-light: #FAFBFC;
-  --bg-hover: #FFF7E6;
+  --bg-light: #FFFDF5;
+  --bg-hover: #FFF3CD;
 
   /* ===== 边框色 ===== */
-  --border-light: #F0F0F0;
-  --border-base: #E8E8E8;
+  --border-light: #FFECB3;
+  --border-base: #FFE082;
+  --border-brown: #5D4037;
 
-  /* ===== 阴影 ===== */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 12px 32px rgba(255, 152, 0, 0.10);
+  /* ===== 阴影（暖色调弥散） ===== */
+  --shadow-sm: 0 2px 8px rgba(255, 152, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(255, 152, 0, 0.08);
+  --shadow-lg: 0 8px 28px rgba(255, 152, 0, 0.10);
+  --shadow-hover: 0 12px 32px rgba(255, 152, 0, 0.14);
   --shadow-primary: 0 4px 16px rgba(255, 152, 0, 0.30);
 
-  /* ===== 圆角 ===== */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* ===== 圆角（超大） ===== */
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-xl: 32px;
   --radius-full: 999px;
 
   /* ===== 字体 ===== */
-  --font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Source Han Sans', 'Microsoft YaHei', sans-serif;
+  --font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
@@ -82,7 +93,7 @@
    ============================================ */
 
 :root {
-  /* 主色 */
+  /* 主色：鸭黄 */
   --el-color-primary: #FFB800;
   --el-color-primary-light-1: #FFC533;
   --el-color-primary-light-2: #FFD266;
@@ -96,54 +107,110 @@
   --el-color-primary-dark-1: #E6A600;
   --el-color-primary-dark-2: #CC9300;
 
-  /* 成功色 */
   --el-color-success: #52C41A;
   --el-color-success-light-3: #95DE64;
   --el-color-success-light-5: #D9F7BE;
 
-  /* 警告色 */
-  --el-color-warning: #FAAD14;
-  --el-color-warning-light-3: #FFD666;
-  --el-color-warning-light-5: #FFF1B8;
+  --el-color-warning: #FF9F43;
+  --el-color-warning-light-3: #FFC499;
+  --el-color-warning-light-5: #FFE8D0;
 
-  /* 危险色 */
-  --el-color-danger: #FF4D4F;
-  --el-color-danger-light-3: #FF9999;
-  --el-color-danger-light-5: #FFCCCC;
+  --el-color-danger: #FF6B6B;
+  --el-color-danger-light-3: #FFA5A5;
+  --el-color-danger-light-5: #FFD4D4;
 
-  /* 信息色 */
-  --el-color-info: #8C8C8C;
+  --el-color-info: #8D6E63;
 
-  /* 圆角 */
-  --el-border-radius-base: 10px;
-  --el-border-radius-small: 6px;
-  --el-border-radius-round: 24px;
+  /* 超大圆角 */
+  --el-border-radius-base: 14px;
+  --el-border-radius-small: 8px;
+  --el-border-radius-round: 28px;
   --el-border-radius-circle: 100%;
 
   /* 边框 */
-  --el-border-color: #F0F0F0;
-  --el-border-color-light: #F0F0F0;
-  --el-border-color-lighter: #F5F5F5;
+  --el-border-color: #FFECB3;
+  --el-border-color-light: #FFE082;
+  --el-border-color-lighter: #FFF3E0;
 
   /* 文字 */
-  --el-text-color-primary: #1A1A1A;
-  --el-text-color-regular: #303133;
-  --el-text-color-secondary: #8C8C8C;
-  --el-text-color-placeholder: #BFBFBF;
+  --el-text-color-primary: #3E2723;
+  --el-text-color-regular: #4E342E;
+  --el-text-color-secondary: #8D6E63;
+  --el-text-color-placeholder: #BCAAA4;
 
   /* 背景 */
   --el-bg-color: #FFFFFF;
-  --el-bg-color-page: #F5F6F8;
+  --el-bg-color-page: #FFF8DC;
   --el-bg-color-overlay: #FFFFFF;
   --el-fill-color-blank: #FFFFFF;
-  --el-fill-color-light: #FAFBFC;
-  --el-fill-color-lighter: #F5F6F8;
+  --el-fill-color-light: #FFFDF5;
+  --el-fill-color-lighter: #FFF8DC;
 
   /* 阴影 */
-  --el-box-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --el-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --el-box-shadow-dark: 0 8px 28px rgba(0, 0, 0, 0.08);
+  --el-box-shadow-light: 0 2px 8px rgba(255,152,0,0.06);
+  --el-box-shadow: 0 4px 16px rgba(255,152,0,0.08);
+  --el-box-shadow-dark: 0 8px 28px rgba(255,152,0,0.10);
 
   /* 字体 */
-  --el-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Source Han Sans', 'Microsoft YaHei', sans-serif;
+  --el-font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+}
+
+/* ============================================
+   全局基础样式
+   ============================================ */
+
+body {
+  background: var(--bg-page);
+  font-family: var(--font-family);
+  color: var(--text-primary);
+}
+
+/* ===== 滚动条 ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #FFF8DC; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #FFE082; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FFB800; }
+
+/* ===== 鸭鸭动画关键帧 ===== */
+@keyframes duck-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes duck-waddle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+@keyframes duck-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes float-up {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(-120px) rotate(15deg); opacity: 0; }
+}
+@keyframes bounce-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); }
+  60% { transform: rotate(-2deg); }
+  80% { transform: rotate(2deg); }
+}
+@keyframes pop-in {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes star-burst {
+  0% { transform: scale(0) rotate(0deg); opacity: 1; }
+  100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+}
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }

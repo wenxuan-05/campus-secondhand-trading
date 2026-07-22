@@ -107,8 +107,14 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
             scoreChange += 1;
         }
 
-        int newScore = Math.max(0, user.getCreditScore() + scoreChange);
+        int newScore = Math.max(0, Math.min(100, user.getCreditScore() + scoreChange));
         user.setCreditScore(newScore);
+
+        // 积分低于60：自动封禁7天
+        if (newScore < 60 && (user.getStatus() == null || user.getStatus() == 1)) {
+            user.setStatus(0); // 禁用
+            user.setBanExpireTime(LocalDateTime.now().plusDays(7));
+        }
 
         // Increment trade count
         if (user.getTradeCount() == null) user.setTradeCount(0);

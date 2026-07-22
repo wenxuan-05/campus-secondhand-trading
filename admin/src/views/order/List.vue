@@ -52,7 +52,7 @@
             <span v-else style="color:#c0c4cc">---</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="170" />
+        <el-table-column prop="createdAt" label="创建时间" width="170" :formatter="formatTimeColumn" />
       </el-table>
 
       <div class="table-footer">
@@ -74,6 +74,7 @@
 import { ref, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { getOrders } from '../../api/order'
+import { formatTimeColumn } from '../../utils/format'
 
 const statusLabels = { 10: '待付款', 20: '待面交', 25: '待发货', 30: '待确认', 40: '待评价', 50: '已评价', 60: '退款中', 70: '退款纠纷', 80: '已退款', 90: '已取消', 100: '已关闭' }
 const statusTypes = { 10: 'warning', 20: 'info', 25: 'info', 30: '', 40: 'success', 50: 'success', 60: 'warning', 70: 'danger', 80: 'info', 90: 'danger', 100: 'info' }

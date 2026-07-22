@@ -29,6 +29,9 @@ public class Goods {
     private Long schoolId;          // 学校ID
     private Integer status;         // 0=草稿, 1=审核中, 2=在售, 3=已售, 4=已下架, 5=审核失败, 6=已删除
     private Integer viewCount;
+    private String reviewReason;    // 审核拒绝理由
+    private Long reviewerId;        // 审核人ID
+    private LocalDateTime reviewedAt;// 审核时间
     private LocalDateTime refreshTime;  // 刷新时间
     private LocalDateTime expireTime;   // 过期时间
     @TableField(fill = FieldFill.INSERT)

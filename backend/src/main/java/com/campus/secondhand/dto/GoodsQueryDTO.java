@@ -11,7 +11,8 @@ public class GoodsQueryDTO {
     private BigDecimal priceMin;
     private BigDecimal priceMax;
     private Integer status;
-    private String sortBy;        // price_asc, price_desc, created_desc, view_desc
+    private String sortBy;        // price_asc, price_desc, created_desc, view_desc, location_desc, personalized
+    private String dormitory;     // current user's dormitory for location-based sorting
     private Integer page = 1;
     private Integer pageSize = 20;
 }

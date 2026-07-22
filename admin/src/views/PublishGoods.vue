@@ -59,6 +59,34 @@
           </el-col>
         </el-row>
 
+        <el-row :gutter="24">
+          <el-col :span="12">
+            <el-form-item label="交易地点" prop="location">
+              <el-select v-model="form.location" size="large" style="width:100%" @change="onLocationChange">
+                <el-option
+                  v-for="loc in presetLocations"
+                  :key="loc.id"
+                  :label="loc.name"
+                  :value="loc.id"
+                />
+                <el-option label="🏠 宿舍楼下" value="dorm" />
+                <el-option label="📍 自定义地点" value="custom" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12" v-if="form.location === 'dorm' || form.location === 'custom'">
+            <el-form-item :label="form.location === 'dorm' ? '宿舍楼号' : '地点名称'">
+              <el-input
+                v-model="form.dormBuilding"
+                :placeholder="form.location === 'dorm' ? '例如：竹园3栋、梅园5栋' : '例如：东门门口、食堂二楼'"
+                size="large"
+                maxlength="20"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-form-item label="商品图片">
           <div class="upload-area">
             <div class="upload-grid">
@@ -119,9 +147,19 @@ const formRef = ref(null)
 const previewImages = ref([])
 const uploadedUrls = ref([])
 
+const presetLocations = [
+  { id: 'canteen', name: '🍽️ 三味食堂门口' },
+  { id: 'library', name: '📚 图书馆一楼' },
+  { id: 'playground', name: '🏟️ 操场' },
+  { id: 'cainiao', name: '📦 西门菜鸟快递站' },
+  { id: 'zhuyuan', name: '🎋 竹园门口' },
+  { id: 'meiyuan', name: '🌸 梅园门口' },
+]
+
 const form = reactive({
   title: '', category: 'other', description: '',
-  price: null, originalPrice: null, conditionLevel: 3
+  price: null, originalPrice: null, conditionLevel: 3,
+  location: '', dormBuilding: ''
 })
 
 const rules = {
@@ -129,6 +167,13 @@ const rules = {
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
   price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
   conditionLevel: [{ required: true, message: '请选择成色', trigger: 'change' }],
+  location: [{ required: true, message: '请选择交易地点', trigger: 'change' }],
+}
+
+const onLocationChange = (val) => {
+  if (val !== 'dorm' && val !== 'custom') {
+    form.dormBuilding = ''
+  }
 }
 
 onMounted(async () => {
@@ -138,6 +183,14 @@ onMounted(async () => {
     const res = await getDetail(id)
     const g = res.data
     Object.assign(form, { title: g.title, category: g.category, description: g.description, price: g.price, originalPrice: g.originalPrice, conditionLevel: g.conditionLevel })
+    // Parse stored location JSON
+    try {
+      const loc = JSON.parse(g.location || '{}')
+      if (loc.id) {
+        form.location = loc.id
+        form.dormBuilding = loc.building || ''
+      }
+    } catch {}
     try { const arr = JSON.parse(g.images || '[]'); previewImages.value = arr; uploadedUrls.value = [...arr] } catch {}
   }
 })
@@ -157,7 +210,24 @@ const handleSubmit = async () => {
   if (!valid) return
   submitting.value = true
   try {
-    const data = { ...form, images: uploadedUrls.value }
+    // Build location JSON
+    let locationJson = ''
+    if (form.location) {
+      let locName
+      if (form.location === 'dorm') {
+        locName = '宿舍楼下'
+      } else if (form.location === 'custom') {
+        locName = form.dormBuilding || '自定义地点'
+      } else {
+        locName = presetLocations.find(l => l.id === form.location)?.name || form.location
+      }
+      locationJson = JSON.stringify({
+        id: form.location,
+        name: locName,
+        building: (form.location === 'dorm' || form.location === 'custom') ? form.dormBuilding : ''
+      })
+    }
+    const data = { ...form, images: uploadedUrls.value, location: locationJson }
     if (isEdit.value) {
       await updateGoods(route.params.id, data)
       ElMessage.success('已更新')
@@ -176,11 +246,11 @@ const handleSubmit = async () => {
 <style scoped>
 .publish-page { max-width: 800px; margin: 0 auto; padding-bottom: 40px; }
 
-.page-top { margin-bottom: 24px; }
-.page-title { font-size: 24px; font-weight: 700; color: #1A1A1A; margin: 0 0 6px; }
-.page-desc { font-size: 14px; color: #8C8C8C; margin: 0; }
+.page-top { margin-bottom: 28px; }
+.page-title { font-size: 24px; font-weight: 800; color: #5D4037; margin: 0 0 6px; }
+.page-desc { font-size: 14px; color: #8D6E63; margin: 0; font-weight: 600; }
 
-.form-card { border-radius: 16px; overflow: hidden; }
+.form-card { border-radius: 26px; overflow: hidden; border: 2.5px solid #FFE082; box-shadow: 4px 4px 0 rgba(93,64,55,0.08); }
 .publish-form { padding: 8px 0; }
 
 /* ===== 上传区 ===== */
@@ -188,31 +258,39 @@ const handleSubmit = async () => {
 .upload-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
 
 .upload-preview-item {
-  width: 108px; height: 108px; border-radius: 12px; overflow: hidden;
-  position: relative; cursor: pointer;
+  width: 108px; height: 108px; border-radius: 16px; overflow: hidden;
+  position: relative; cursor: pointer; border: 2px solid #FFE082;
 }
 .upload-preview-item img { width: 100%; height: 100%; object-fit: cover; }
 .upload-overlay {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+  position: absolute; inset: 0; background: rgba(93,64,55,0.5);
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 0.25s; color: #fff;
 }
 .upload-preview-item:hover .upload-overlay { opacity: 1; }
 
 .upload-add-box {
-  width: 108px; height: 108px; border: 2px dashed #dcdfe6;
-  border-radius: 12px; display: flex; flex-direction: column;
+  width: 108px; height: 108px; border: 2.5px dashed #FFE082;
+  border-radius: 16px; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 6px;
-  color: #BFBFBF; transition: all 0.25s; font-size: 13px;
+  color: #BCAAA4; transition: all 0.25s; font-size: 13px;
   cursor: pointer;
 }
-.upload-add-box:hover { border-color: #FFB800; color: #FFB800; background: #FFF7E6; }
+.upload-add-box:hover { border-color: #5D4037; color: #5D4037; background: #FFF8DC; }
 
-.upload-tip { font-size: 13px; color: #BFBFBF; margin: 10px 0 0; }
+.upload-tip { font-size: 13px; color: #8D6E63; margin: 10px 0 0; }
 
 /* ===== 提交按钮 ===== */
 .submit-btn {
-  padding: 14px 36px; font-size: 16px; font-weight: 700;
+  padding: 14px 40px; font-size: 16px; font-weight: 800;
   border-radius: 28px; letter-spacing: 1px;
+  border: 2.5px solid #5D4037 !important;
+  box-shadow: 4px 4px 0 #5D4037;
+  background: var(--color-primary-gradient) !important;
+  color: #3E2723 !important;
+}
+.submit-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 #5D4037;
 }
 </style>

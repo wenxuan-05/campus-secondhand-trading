@@ -47,7 +47,20 @@
             <span class="meta-item">
               <el-icon :size="15"><View /></el-icon> {{ goods.viewCount }} 浏览
             </span>
-            <span class="meta-item">{{ goods.createdAt?.slice(0, 10) }}</span>
+            <span class="meta-item">{{ formatTime(goods.createdAt) }}</span>
+          </div>
+        </div>
+
+        <!-- 交易地点 -->
+        <div class="location-section" v-if="goodsLocation">
+          <div class="location-label">
+            <el-icon :size="16"><LocationFilled /></el-icon> 交易地点
+          </div>
+          <div class="location-content">
+            <span class="location-name">{{ goodsLocation.name }}</span>
+            <span class="location-building" v-if="goodsLocation.building">
+              · {{ goodsLocation.building }}
+            </span>
           </div>
         </div>
 
@@ -100,7 +113,7 @@
     <!-- 卖家卡片 -->
     <el-card class="seller-card" shadow="hover">
       <div class="seller-card-inner">
-        <el-avatar :size="52" class="seller-avatar">
+        <el-avatar :size="52" :src="sellerAvatar" class="seller-avatar">
           {{ (sellerName || '卖')[0] }}
         </el-avatar>
         <div class="seller-info">
@@ -114,6 +127,33 @@
         </el-button>
       </div>
     </el-card>
+
+    <!-- ====== 看了这个也在看 ====== -->
+    <div v-if="relatedList.length > 0" class="related-section">
+      <div class="related-header">
+        <span class="related-title">📂 看了这个也在看</span>
+      </div>
+      <div class="related-scroll">
+        <div
+          v-for="item in relatedList"
+          :key="'rel-' + item.goods.id"
+          class="related-card"
+          @click="goRelated(item.goods.id)"
+        >
+          <div class="rel-card-img">
+            <img v-if="getRelatedImage(item.goods)" :src="getRelatedImage(item.goods)" alt="" />
+            <div v-else class="rel-card-img-empty">
+              <el-icon :size="22"><PictureFilled /></el-icon>
+            </div>
+            <span :class="['rel-reason-tag', 'rel-tag--' + (item.reasonType || 'popular')]">{{ item.reason }}</span>
+          </div>
+          <div class="rel-card-body">
+            <h4 class="rel-card-title">{{ item.goods.title }}</h4>
+            <span class="rel-card-price">¥{{ item.goods.price }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 购买弹窗 -->
     <el-dialog v-model="buyVisible" title="确认下单" width="440px" class="buy-dialog" :close-on-click-modal="false">
@@ -132,15 +172,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { PictureFilled, ShoppingCartFull, ChatDotRound, Edit, Remove, View, Star } from '@element-plus/icons-vue'
+import { PictureFilled, ShoppingCartFull, ChatDotRound, Edit, Remove, View, Star, LocationFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
-import { getDetail, offShelf } from '../api/goods'
+import { getDetail, offShelf, getRelatedRecommend } from '../api/goods'
 import { createOrder, payOrder } from '../api/order'
 import { addFavorite, removeFavorite, checkFavorite } from '../api/favorite'
 import request from '../utils/request'
+import { formatTime } from '../utils/format'
 
 const route = useRoute()
 const router = useRouter()
@@ -152,8 +193,10 @@ const buyVisible = ref(false)
 const buying = ref(false)
 const remark = ref('')
 const sellerName = ref('')
+const sellerAvatar = ref('')
 const sellerCredit = ref(0)
 const isFavorited = ref(false)
+const relatedList = ref([])
 
 const imageList = ref([])
 const currentImage = ref('')
@@ -161,7 +204,11 @@ const failedImages = reactive(new Set())
 
 const conditionMap = { 1: '全新', 2: '几乎全新', 3: '良好', 4: '一般', 5: '较差' }
 const categoryMap = { book: '教材', electronic: '电子产品', clothing: '服饰', sports: '运动', daily: '生活', other: '其他' }
-const isOwner = () => goods.value.userId === store.userInfo?.id
+const isOwner = computed(() => goods.value.userId === store.userInfo?.id)
+const goodsLocation = computed(() => {
+  try { return JSON.parse(goods.value.location || '{}') }
+  catch { return null }
+})
 
 const fetchDetail = async () => {
   loading.value = true
@@ -172,11 +219,10 @@ const fetchDetail = async () => {
     currentImage.value = imageList.value[0] || ''
     if (goods.value.userId) {
       try {
-        const ur = await request.get(`/admin/users?page=1&pageSize=1&keyword=${goods.value.userId}`)
-        if (ur.data?.records?.length > 0) {
-          sellerName.value = ur.data.records[0].nickname
-          sellerCredit.value = ur.data.records[0].creditScore
-        }
+        const ur = await request.get(`/user/${goods.value.userId}`)
+        sellerName.value = ur.data.nickname || '未知用户'
+        sellerAvatar.value = ur.data.avatar || ''
+        sellerCredit.value = ur.data.creditScore || 80
       } catch { /* seller info is optional */ }
     }
     // Check favorite status
@@ -223,7 +269,8 @@ const confirmBuy = async () => {
 }
 
 const handleChat = () => {
-  const sessionId = `goods_${goods.value.id}_${goods.value.userId}_${store.userInfo?.id}`
+  const userIds = [goods.value.userId, store.userInfo?.id].sort((a, b) => a - b)
+  const sessionId = `goods_${goods.value.id}_${userIds[0]}_${userIds[1]}`
   router.push(`/chat/${encodeURIComponent(sessionId)}`)
 }
 
@@ -236,20 +283,48 @@ const handleOff = async () => {
 
 const editGoods = () => router.push(`/publish/${goods.value.id}`)
 
-onMounted(fetchDetail)
+const fetchRelated = async () => {
+  try {
+    const res = await getRelatedRecommend({ goodsId: route.params.id, limit: 8 })
+    relatedList.value = res.data || []
+  } catch { relatedList.value = [] }
+}
+
+const getRelatedImage = (g) => {
+  try { const arr = JSON.parse(g.images || '[]'); return arr[0] || '' } catch { return '' }
+}
+
+const goRelated = (id) => {
+  if (id == route.params.id) return
+  window.scrollTo({ top: 0, behavior: 'instant' })
+  router.push(`/goods/${id}`)
+}
+
+// 监听路由参数变化，同一组件内跳转时刷新数据
+watch(() => route.params.id, (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    imageList.value = []
+    currentImage.value = ''
+    fetchDetail()
+    fetchRelated()
+  }
+})
+
+onMounted(() => { fetchDetail(); fetchRelated() })
 </script>
 
 <style scoped>
-.detail { max-width: 1000px; margin: 0 auto; padding-bottom: 40px; }
-.detail-main { display: flex; gap: 36px; margin-bottom: 28px; }
+.detail { max-width: 1000px; margin: 0 auto; padding-bottom: 32px; }
+.detail-main { display: flex; gap: 24px; margin-bottom: 20px; }
 @media (max-width: 768px) { .detail-main { flex-direction: column; } }
 
 /* ===== 图片 ===== */
 .image-gallery { flex: 1; min-width: 0; }
 .main-image-wrap { position: relative; }
 .main-image {
-  width: 100%; height: 420px; object-fit: cover; border-radius: 20px;
-  background: #f8f9fb; display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 420px; object-fit: cover; border-radius: 26px;
+  background: #FFFDF5; display: flex; align-items: center; justify-content: center;
+  border: 2.5px solid #5D4037;
 }
 .main-image.placeholder { background: #F5F6F8; }
 .image-status { position: absolute; top: 16px; left: 16px; }
@@ -267,13 +342,15 @@ onMounted(fetchDetail)
 .title { font-size: 22px; font-weight: 700; color: #1A1A1A; line-height: 1.4; margin: 0; }
 
 .price-card {
-  background: linear-gradient(135deg, #FFF7E6, #FFF1D6);
-  border-radius: 16px;
+  background: linear-gradient(135deg, #FFE66D, #FFD3B6);
+  border-radius: 22px;
   padding: 18px 20px;
   margin-bottom: 18px;
   display: flex;
   align-items: baseline;
   gap: 14px;
+  border: 2.5px solid #5D4037;
+  box-shadow: 3px 3px 0 rgba(93,64,55,0.15);
 }
 .price-main { line-height: 1; }
 .price-symbol { font-size: 18px; font-weight: 700; color: #FF4D4F; }
@@ -290,20 +367,65 @@ onMounted(fetchDetail)
 }
 .meta-item { display: flex; align-items: center; gap: 4px; }
 
+.location-section {
+  margin-bottom: 20px; padding: 14px 18px;
+  background: #FFFDF5; border-radius: 16px;
+  border: 2px solid #FFE082;
+  display: flex; align-items: center; gap: 12px;
+}
+.location-label {
+  font-size: 13px; font-weight: 600; color: #8D6E63;
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
+}
+.location-content { display: flex; align-items: baseline; gap: 2px; }
+.location-name { font-size: 15px; font-weight: 700; color: #3E2723; }
+.location-building { font-size: 13px; color: #8D6E63; font-weight: 600; }
+
 .desc-section { margin-bottom: 28px; flex: 1; }
 .desc-label { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 10px; }
 .desc-content { font-size: 14px; line-height: 1.8; color: #606266; white-space: pre-wrap; }
 
 .actions { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn-buy {
-  padding: 14px 32px; font-size: 16px; font-weight: 700; letter-spacing: 2px;
-  border-radius: 28px;
+  padding: 14px 36px; font-size: 16px; font-weight: 800; letter-spacing: 2px;
+  border-radius: 28px; border: 2.5px solid #5D4037 !important;
+  box-shadow: 4px 4px 0 #5D4037;
+  transition: all 0.2s;
 }
-.btn-chat { padding: 14px 28px; font-size: 15px; border-radius: 28px; }
-.btn-fav { border-radius: 28px; }
+.btn-buy:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #5D4037;
+}
+.btn-buy:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #5D4037;
+}
+.btn-chat {
+  padding: 14px 28px; font-size: 15px; font-weight: 700;
+  border-radius: 28px; border: 2.5px solid #5D4037 !important;
+  color: #5D4037 !important;
+  box-shadow: 3px 3px 0 #5D4037;
+}
+.btn-chat:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #5D4037;
+}
+.btn-fav {
+  border-radius: 28px; border: 2.5px solid #FFE082 !important;
+  font-weight: 700;
+}
+.btn-fav:hover {
+  border-color: #5D4037 !important;
+  box-shadow: 3px 3px 0 #5D4037;
+}
 
 /* ===== 卖家卡片 ===== */
-.seller-card { max-width: 460px; border-radius: 16px; }
+.seller-card {
+  max-width: 460px; border-radius: 26px;
+  border: 2.5px solid #FFE082;
+  box-shadow: 3px 3px 0 rgba(93,64,55,0.08);
+}
 .seller-card-inner { display: flex; align-items: center; gap: 14px; }
 .seller-avatar { background: linear-gradient(135deg, #FFD000, #FF9500); color: #fff; font-size: 20px; }
 .seller-info { flex: 1; }
@@ -315,4 +437,59 @@ onMounted(fetchDetail)
 .buy-order-info { text-align: center; }
 .buy-goods-title { font-size: 16px; font-weight: 600; color: #1A1A1A; margin-bottom: 8px; }
 .buy-goods-price { font-size: 28px; font-weight: 700; color: #FF4D4F; }
+
+/* ===== 看了这个也在看 ===== */
+.related-section {
+  margin-top: 32px; padding: 20px 24px;
+  background: #FFFDF7; border-radius: 20px;
+  border: 2px solid #FFE082; overflow: hidden;
+}
+.related-header { margin-bottom: 14px; }
+.related-title { font-size: 17px; font-weight: 700; color: #3E2723; }
+.related-scroll {
+  display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: rgba(249,168,38,0.2) transparent;
+}
+.related-card {
+  flex: 0 0 160px; width: 160px; cursor: pointer;
+  background: #fff; border-radius: 14px; overflow: hidden;
+  border: 1.5px solid #FFE082;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.25s ease, border-color 0.25s ease;
+  position: relative; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.related-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255,168,0,0.15);
+  border-color: #FFB800;
+}
+.rel-card-img {
+  height: 130px; position: relative; background: #FFF9E6;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; pointer-events: none;
+}
+.rel-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.rel-card-img-empty { color: #D4A017; }
+.rel-reason-tag {
+  position: absolute; bottom: 6px; left: 6px; right: 6px;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 600; text-align: center;
+  background: rgba(255,255,255,0.9); color: #8D6E63;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
+.rel-tag--category_match { color: #C77D08; }
+.rel-tag--popular { color: #E8950F; }
+.rel-tag--fresh { color: #22A06B; }
+.rel-card-body { padding: 10px 12px 12px; pointer-events: none; }
+.rel-card-title {
+  font-size: 13px; font-weight: 600; color: #1A1A1A; margin: 0 0 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rel-card-price {
+  font-size: 16px; font-weight: 800; color: #FF4D4F;
+}
 </style>

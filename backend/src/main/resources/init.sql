@@ -22,7 +22,7 @@ CREATE TABLE users (
     avatar      NVARCHAR(512) DEFAULT N'',
     password    NVARCHAR(256) NOT NULL,
     phone       NVARCHAR(20)  DEFAULT N'',
-    credit_score INT          NOT NULL DEFAULT 100,
+    credit_score INT          NOT NULL DEFAULT 80,
     status      TINYINT       NOT NULL DEFAULT 1,  -- 0=disabled, 1=active
     created_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
     updated_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
@@ -104,6 +104,25 @@ CREATE TABLE chat_messages (
 );
 CREATE INDEX IX_chat_session_id ON chat_messages(session_id);
 CREATE INDEX IX_chat_created_at ON chat_messages(created_at);
+GO
+
+-- ============================================
+-- Table: user_behavior_log (推荐算法用)
+-- ============================================
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='user_behavior_log' AND xtype='U')
+CREATE TABLE user_behavior_log (
+    id            BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id       BIGINT        NOT NULL,
+    goods_id      BIGINT        NOT NULL,
+    behavior_type TINYINT       NOT NULL,  -- 1=浏览, 2=收藏, 3=购买, 4=聊天, 5=搜索点击
+    weight        DECIMAL(3,2)  NOT NULL DEFAULT 1.00,
+    created_at    DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_behavior_user  FOREIGN KEY (user_id)  REFERENCES users(id),
+    CONSTRAINT FK_behavior_goods FOREIGN KEY (goods_id) REFERENCES goods(id)
+);
+CREATE INDEX IX_behavior_user_time  ON user_behavior_log(user_id, created_at DESC);
+CREATE INDEX IX_behavior_goods_type ON user_behavior_log(goods_id, behavior_type);
 GO
 
 PRINT N'Tables created successfully.';
@@ -191,6 +210,12 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'is_merchant')
 ALTER TABLE users ADD is_merchant TINYINT DEFAULT 0;
 GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'ban_expire_time')
+ALTER TABLE users ADD ban_expire_time DATETIME2 DEFAULT NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'token_version')
+ALTER TABLE users ADD token_version INT DEFAULT 0;
+GO
 
 -- ============================================
 -- ALTER: Add new columns to goods (Phase A)
@@ -246,6 +271,9 @@ ALTER TABLE orders ADD confirm_time DATETIME2 DEFAULT NULL;
 GO
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('orders') AND name = 'cancel_time')
 ALTER TABLE orders ADD cancel_time DATETIME2 DEFAULT NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('orders') AND name = 'pickup_code')
+ALTER TABLE orders ADD pickup_code NVARCHAR(6) DEFAULT NULL;
 GO
 
 -- ============================================
@@ -313,4 +341,166 @@ CREATE INDEX IX_refunds_status   ON refunds(status);
 GO
 
 PRINT N'Phase A migration completed successfully.';
+GO
+
+-- ============================================
+-- Phase B: 求购市场 + 聊天会话增强
+-- ============================================
+
+-- Table: buy_requests (求购信息表)
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='buy_requests' AND xtype='U')
+CREATE TABLE buy_requests (
+    id          BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id     BIGINT        NOT NULL,
+    title       NVARCHAR(128) NOT NULL,
+    category    NVARCHAR(32)  NOT NULL DEFAULT N'other',
+    budget      DECIMAL(10,2) NOT NULL,
+    description NVARCHAR(2000) DEFAULT N'',
+    status      TINYINT       NOT NULL DEFAULT 1,  -- 1=发布中, 2=沟通中, 3=已成交, 4=已撤销
+    view_count  INT           NOT NULL DEFAULT 0,
+    created_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
+    updated_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_buy_requests_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE INDEX IX_buy_requests_user_id ON buy_requests(user_id);
+CREATE INDEX IX_buy_requests_status ON buy_requests(status);
+CREATE INDEX IX_buy_requests_category ON buy_requests(category);
+CREATE INDEX IX_buy_requests_created_at ON buy_requests(created_at DESC);
+GO
+
+-- Table: chat_sessions (聊天会话表)
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='chat_sessions' AND xtype='U')
+CREATE TABLE chat_sessions (
+    id              BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id      NVARCHAR(64)  NOT NULL,
+    buy_request_id  BIGINT        DEFAULT NULL,
+    initiator_id    BIGINT        NOT NULL,
+    target_id       BIGINT        NOT NULL,
+    last_message    NVARCHAR(500) DEFAULT N'',
+    last_time       DATETIME2     DEFAULT GETDATE(),
+    created_at      DATETIME2     NOT NULL DEFAULT GETDATE(),
+    updated_at      DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT UQ_chat_sessions_id UNIQUE (session_id),
+    CONSTRAINT FK_chat_sessions_initiator FOREIGN KEY (initiator_id) REFERENCES users(id),
+    CONSTRAINT FK_chat_sessions_target FOREIGN KEY (target_id) REFERENCES users(id),
+    CONSTRAINT FK_chat_sessions_request FOREIGN KEY (buy_request_id) REFERENCES buy_requests(id)
+);
+CREATE INDEX IX_chat_sessions_initiator ON chat_sessions(initiator_id);
+CREATE INDEX IX_chat_sessions_target ON chat_sessions(target_id);
+CREATE INDEX IX_chat_sessions_buy_request ON chat_sessions(buy_request_id);
+GO
+
+PRINT N'Phase B migration completed successfully.';
+GO
+
+-- ============================================
+-- Phase C: RBAC 角色权限系统
+-- ============================================
+
+-- 1. 添加 role 列（用户角色）
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'role')
+ALTER TABLE users ADD role NVARCHAR(20) DEFAULT N'USER';
+GO
+
+-- 2. 添加 worker_id 列（校园大使工号）
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'worker_id')
+ALTER TABLE users ADD worker_id NVARCHAR(32) DEFAULT NULL;
+GO
+
+-- 3. 添加 goods 审核相关列
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'review_reason')
+ALTER TABLE goods ADD review_reason NVARCHAR(500) DEFAULT N'';
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'reviewer_id')
+ALTER TABLE goods ADD reviewer_id BIGINT DEFAULT NULL;
+GO
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('goods') AND name = 'reviewed_at')
+ALTER TABLE goods ADD reviewed_at DATETIME2 DEFAULT NULL;
+GO
+
+-- 4. 数据迁移：admin账号设为ADMIN，其余保持默认USER
+UPDATE users SET role = N'ADMIN' WHERE student_id = N'admin';
+GO
+
+-- 5. 索引
+CREATE INDEX IX_users_role ON users(role);
+CREATE INDEX IX_users_worker_id ON users(worker_id);
+CREATE INDEX IX_goods_reviewer_id ON goods(reviewer_id);
+GO
+
+PRINT N'Phase C RBAC migration completed successfully.';
+GO
+
+-- ============================================
+-- Phase D: 即时通讯增强 - 举报系统 + 消息扩展
+-- ============================================
+
+-- 1. 聊天消息添加 extra_data 列（商品卡片/出价等结构化数据）
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('chat_messages') AND name = 'extra_data')
+ALTER TABLE chat_messages ADD extra_data NVARCHAR(MAX) DEFAULT NULL;
+GO
+
+-- 2. 举报表（支持消息举报和用户举报）
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='reports' AND xtype='U')
+CREATE TABLE reports (
+    id               BIGINT IDENTITY(1,1) PRIMARY KEY,
+    reporter_id      BIGINT        NOT NULL,
+    reported_user_id BIGINT        NOT NULL,
+    message_id       BIGINT        DEFAULT NULL,
+    session_id       NVARCHAR(64)  DEFAULT NULL,
+    report_type      NVARCHAR(20)  NOT NULL DEFAULT 'message',  -- 'message' or 'user'
+    reason           NVARCHAR(50)  NOT NULL,   -- harassment/spam/fraud/other
+    description      NVARCHAR(500) DEFAULT N'',
+    status           TINYINT       NOT NULL DEFAULT 0,  -- 0=pending, 1=reviewed, 2=dismissed
+    handler_note     NVARCHAR(500) DEFAULT N'',
+    handled_by       BIGINT        DEFAULT NULL,
+    handled_at       DATETIME2     DEFAULT NULL,
+    created_at       DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_reports_reporter FOREIGN KEY (reporter_id) REFERENCES users(id),
+    CONSTRAINT FK_reports_reported FOREIGN KEY (reported_user_id) REFERENCES users(id),
+    CONSTRAINT FK_reports_message  FOREIGN KEY (message_id)  REFERENCES chat_messages(id)
+);
+CREATE INDEX IX_reports_reporter ON reports(reporter_id);
+CREATE INDEX IX_reports_reported ON reports(reported_user_id);
+CREATE INDEX IX_reports_status   ON reports(status);
+CREATE INDEX IX_reports_created_at ON reports(created_at DESC);
+GO
+
+PRINT N'Phase D IM enhancement migration completed successfully.';
+GO
+
+-- ============================================
+-- Phase E: 校园大使申请审核系统
+-- ============================================
+
+-- 校园大使申请表
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ambassador_applications' AND xtype='U')
+CREATE TABLE ambassador_applications (
+    id                  BIGINT IDENTITY(1,1) PRIMARY KEY,
+    user_id             BIGINT        DEFAULT NULL,
+    name                NVARCHAR(32)  NOT NULL,
+    student_id          NVARCHAR(32)  NOT NULL,
+    phone               NVARCHAR(20)  NOT NULL,
+    department          NVARCHAR(64)  NOT NULL,
+    dormitory           NVARCHAR(64)  NOT NULL,
+    community_resource  NVARCHAR(32)  NOT NULL,  -- dormitory/department/club/other
+    reason              NVARCHAR(500) NOT NULL,
+    status              TINYINT       NOT NULL DEFAULT 0,  -- 0=pending, 1=approved, 2=rejected
+    reviewer_id         BIGINT        DEFAULT NULL,
+    review_note         NVARCHAR(500) DEFAULT N'',
+    reviewed_at         DATETIME2     DEFAULT NULL,
+    created_at          DATETIME2     NOT NULL DEFAULT GETDATE(),
+    updated_at          DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_ambassador_app_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE INDEX IX_ambassador_app_student_id ON ambassador_applications(student_id);
+CREATE INDEX IX_ambassador_app_status ON ambassador_applications(status);
+CREATE INDEX IX_ambassador_app_created_at ON ambassador_applications(created_at DESC);
+GO
+
+PRINT N'Phase E ambassador application migration completed successfully.';
 GO

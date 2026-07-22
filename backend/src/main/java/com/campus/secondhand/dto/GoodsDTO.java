@@ -16,5 +16,6 @@ public class GoodsDTO {
     private BigDecimal originalPrice;
     private Integer conditionLevel;
     private String category;
+    private String location;
     private List<String> images;
 }

@@ -2,6 +2,7 @@ package com.campus.secondhand.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.dto.FavoriteVO;
 import com.campus.secondhand.entity.Favorite;
 import com.campus.secondhand.security.UserContext;
 import com.campus.secondhand.service.FavoriteService;
@@ -34,8 +35,8 @@ public class FavoriteController {
     }
 
     @GetMapping
-    public Result<Page<Favorite>> myFavorites(@RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "20") int pageSize) {
+    public Result<Page<FavoriteVO>> myFavorites(@RequestParam(defaultValue = "1") int page,
+                                                 @RequestParam(defaultValue = "20") int pageSize) {
         return Result.ok(favoriteService.myFavorites(UserContext.getUserId(), page, pageSize));
     }
 }
